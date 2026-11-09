@@ -12,8 +12,8 @@ All optional. Defaults are safe for a home NAS.
 | `SETUP_TOKEN_TTL_MINUTES` | `60` | Lifetime of a generated token |
 | `PUBLIC_ORIGIN` | — | Exact URL users open, e.g. `https://isbtv.example.home`. Needed for passkeys and accepted as a request origin. Can also be set in the UI. |
 | `REQUIRE_HTTPS` | `false` | Refuse sign-in/setup/recovery over HTTP |
-| `COOKIE_SECURE` | `auto` | `auto` follows the request scheme; `true` behind a TLS proxy |
-| `TRUSTED_PROXIES` | — | Comma-separated CIDRs whose `X-Forwarded-*` headers are honoured |
+| `COOKIE_SECURE` | `auto` | `auto` follows the detected scheme (works behind TLS proxies); `true`/`false` to force |
+| `TRUSTED_PROXIES` | — | Optional. Proxies whose `X-Forwarded-*` headers are honoured (real client IPs). Proxies can also be trusted with one click on the Access page. Not needed for HTTPS detection. |
 | `TLS_SELF_SIGNED` | `false` | Serve HTTPS with a generated certificate |
 | `TLS_CERT_FILE`, `TLS_KEY_FILE` | — | Serve HTTPS with your certificate |
 | `MAX_REQUEST_BYTES` | `256KiB` | Request body limit |

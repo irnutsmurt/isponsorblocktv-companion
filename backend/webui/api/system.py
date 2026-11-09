@@ -22,7 +22,11 @@ from ..auth.deps import actor, current_session, read_session_token, recent_auth
 from ..auth.passkeys import origin_allows_passkeys
 from ..logging import get_logger, get_logging_state
 from ..upstream.config_schema import redact_config
-from ..util import iso, now_iso, utcnow
+from ..util import iso, now_iso, utcnow, from_epoch
+
+
+def iso_from_epoch(ts: float) -> str | None:
+    return iso(from_epoch(ts))
 
 log = get_logger("api.system")
 router = APIRouter(tags=["system"])
@@ -35,6 +39,8 @@ class RuntimeSettingsBody(BaseModel):
     public_origin: str | None = Field(default=None, max_length=256)
     youtube_api_key: str | None = Field(default=None, max_length=128)
     clear_youtube_api_key: bool = False
+    trust_proxy: str | None = Field(default=None, max_length=64)     # IP or CIDR to add
+    untrust_proxy: str | None = Field(default=None, max_length=64)   # runtime entry to remove
 
 
 @router.get("/healthz")
@@ -158,7 +164,21 @@ async def get_runtime_settings(request: Request, session: dict = Depends(current
     st = request.app.state
     rs = st.runtime_settings
     origin = rs.get("public_origin") or st.settings.public_origin
+    info = request.state.info
+    hint = getattr(st, "proxy_hint", None)
+    detected = None
+    if hint and time.time() - hint["at"] < 24 * 3600 and not info.via_trusted_proxy:
+        detected = {"address": hint["peer"], "seen_at": iso_from_epoch(hint["at"]), "forwarded_proto": hint.get("forwarded_proto")}
     return {
+        "proxy": {
+            "connected_from": info.peer,
+            "via_trusted_proxy": info.via_trusted_proxy,
+            "client_ip": info.client_ip,
+            "https_detected_by": info.scheme_source,
+            "trusted_env": [str(n) for n in st.settings.trusted_proxies],
+            "trusted_runtime": [str(n) for n in getattr(st, "runtime_trusted_proxies", [])],
+            "detected_untrusted": detected,
+        },
         "timezone": rs.get("timezone") or "UTC",
         "public_origin": origin,
         "public_origin_source": "runtime" if rs.get("public_origin") else ("env" if st.settings.public_origin else None),
@@ -206,6 +226,27 @@ async def put_runtime_settings(body: RuntimeSettingsBody, request: Request, sess
         st.runtime_settings["youtube_api_key"] = body.youtube_api_key.strip()
         st.enrichment.status["api_key_rejected"] = False
         changed.append("youtube_api_key")
+    if body.trust_proxy or body.untrust_proxy:
+        import ipaddress
+        from ..settings import parse_trusted
+        current = [str(n) for n in getattr(st, "runtime_trusted_proxies", [])]
+        if body.trust_proxy:
+            try:
+                net = ipaddress.ip_network(body.trust_proxy.strip(), strict=False)
+            except ValueError:
+                raise HTTPException(http.HTTP_422_UNPROCESSABLE_ENTITY, "Enter an IP address or a network like 172.31.0.0/16.")
+            if net.prefixlen == 0:
+                raise HTTPException(http.HTTP_422_UNPROCESSABLE_ENTITY, "Trusting every address is not allowed.")
+            if str(net) not in current:
+                current.append(str(net))
+        if body.untrust_proxy:
+            current = [c for c in current if c != body.untrust_proxy.strip()]
+        await st.db.set_state("trusted_proxies", ",".join(current) or None)
+        st.runtime_trusted_proxies = parse_trusted(",".join(current))
+        st.proxy_hint = None
+        changed.append("trusted_proxies")
+        from ..context import request_info
+        request.state.info = request_info(request)  # reflect the new trust in the response
     await st.audit.record("settings.changed", "ok", actor=actor(session), fields=changed, ip=request.state.info.client_ip)
     return await get_runtime_settings(request, session)
 

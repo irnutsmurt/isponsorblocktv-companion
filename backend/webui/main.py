@@ -31,6 +31,7 @@ from .auth.recovery import RecoveryService
 from .auth.sessions import SessionService
 from .background import Maintenance
 from .context import request_info
+from .settings import parse_trusted
 from .db import Database, DatabaseUnavailable
 from .events_bus import EventBus
 from .logging import get_logger, request_id_var, setup_logging
@@ -111,6 +112,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.state.runtime_settings = {}
     app.state.pairing_tickets = {}
+    app.state.runtime_trusted_proxies = []
+    app.state.proxy_hint = None
     app.state.started_at = now_iso()
     app.state.started_monotonic_epoch = time.time()
 
@@ -172,6 +175,7 @@ async def _startup(app: FastAPI, settings: Settings) -> None:
             v = await db.get_state(key)
             if v:
                 st.runtime_settings[key] = v
+        st.runtime_trusted_proxies = parse_trusted(await db.get_state("trusted_proxies"))
         if st.runtime_settings.get("youtube_api_key"):
             from .logging.redaction import register_secret
             register_secret(st.runtime_settings["youtube_api_key"], "YOUTUBE_API_KEY")

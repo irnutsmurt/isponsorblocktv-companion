@@ -26,22 +26,28 @@ refuse passkeys on sites with an untrusted certificate**; use option B or C if y
 
 Mount the files read-only. Restart the web UI after renewing them.
 
-## Option C — behind a reverse proxy (Synology Login Portal, Nginx Proxy Manager, Traefik, Caddy)
+## Option C — behind a reverse proxy (Caddy, Nginx Proxy Manager, Traefik, Synology)
 
-1. Proxy `https://isbtv.example.home` → `http://<webui>:8099`. Pass `Host`, `X-Forwarded-For` and
-   `X-Forwarded-Proto`. Disable response buffering for `/api/stream` (Server-Sent Events) if your proxy buffers.
-2. Tell the web UI which proxy to trust, and nothing else:
-   ```yaml
-      TRUSTED_PROXIES: 172.20.0.5/32          # the proxy container's address or network
-      PUBLIC_ORIGIN: https://isbtv.example.home
-      COOKIE_SECURE: "true"
-      REQUIRE_HTTPS: "true"
-   ```
-3. Stop publishing port 8099 to the LAN (remove `ports:` and put both on one Docker network), so the proxy is the only way in.
+Point the proxy at the web UI **any way that suits your setup**: container name (`isbtv-webui:8099`), container
+IP, or the NAS address and published port (`192.168.1.10:3099`). Then set just one variable:
 
-Forwarded headers are ignored unless the TCP peer is in `TRUSTED_PROXIES`. This affects the client IP used for
-throttling and the scheme used for cookie security; a forged `X-Forwarded-For` from anyone else changes nothing
-(tested). Do **not** open router ports or enable UPnP for this app; use a VPN to reach it from outside.
+```yaml
+      PUBLIC_ORIGIN: https://isbtv.example.home:8443   # the exact URL you type, including a non-standard port
+```
+
+That's all. **HTTPS is detected automatically**: the browser reports the address it is on with every request, so
+the web UI knows the connection is HTTPS without any proxy settings, and it marks the session cookie Secure.
+
+**Optional — show real device IPs.** Without further setup the web UI sees every request as coming from the proxy,
+so the session list shows the proxy's address and sign-in throttling is per proxy instead of per device (per-account
+throttling still applies). To fix that, open **Account & security → Access → Reverse proxy**. When requests carry
+proxy headers from an address the web UI does not trust yet, it shows *“A reverse proxy was detected”* with a
+**Trust** button. Click it if that address is your proxy. You can also enter an address or network by hand, or set
+`TRUSTED_PROXIES` (comma-separated IPs/CIDRs) in the compose file. Forwarded headers from anything not trusted are
+ignored, so other devices on your network cannot fake their address.
+
+Disable response buffering for `/api/stream` (live updates) if your proxy buffers; Caddy does not need this.
+Do **not** open router ports or enable UPnP for this app; use a VPN to reach it from outside.
 
 ## Cookies
 

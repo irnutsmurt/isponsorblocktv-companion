@@ -123,7 +123,45 @@ function PasswordSection() {
   )
 }
 
+function ProxySettings({ s, save }: { s: any; save: (body: any, msg: string) => Promise<void> }) {
+  const p = s.proxy
+  const [manual, setManual] = useState('')
+  if (!p) return null
+  const trustedAny = p.trusted_env.length + p.trusted_runtime.length > 0
+  return (
+    <fieldset>
+      <legend>Reverse proxy</legend>
+      <p className="muted" style={{ marginTop: 0 }}>
+        {p.https_detected_by === 'proxy' ? 'You are connected through a trusted reverse proxy over HTTPS.'
+          : p.https_detected_by === 'browser' ? 'HTTPS is detected from your browser. Everything works; trusting your proxy below additionally shows real device IPs in the session list and uses them for sign-in throttling.'
+          : 'No reverse proxy is in use for this connection, or it is not trusted.'}
+      </p>
+      {p.detected_untrusted ? (
+        <Notice kind="info" title="A reverse proxy was detected" actions={<button className="btn btn-sm btn-primary" onClick={() => save({ trust_proxy: p.detected_untrusted.address }, 'Proxy trusted')}>Trust {p.detected_untrusted.address}</button>}>
+          <p>Requests arrive from <code>{p.detected_untrusted.address}</code> with proxy headers. Trust it if that is your reverse proxy (Caddy, Nginx, Synology). Only do this for a proxy you control.</p>
+        </Notice>
+      ) : null}
+      <dl className="kv" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 16px', margin: '8px 0' }}>
+        <dt className="muted">This connection comes from</dt><dd style={{ margin: 0 }}><code>{p.connected_from}</code>{p.via_trusted_proxy ? ` (trusted proxy for ${p.client_ip})` : ''}</dd>
+        <dt className="muted">Trusted proxies</dt><dd style={{ margin: 0 }}>
+          {!trustedAny ? <span className="subtle">None</span> : null}
+          {p.trusted_env.map((t: string) => <div key={t}><code>{t}</code> <span className="subtle">(TRUSTED_PROXIES)</span></div>)}
+          {p.trusted_runtime.map((t: string) => <div key={t} className="row"><code>{t}</code><button className="btn btn-sm btn-ghost" onClick={() => save({ untrust_proxy: t }, 'Proxy removed')}>Remove</button></div>)}
+        </dd>
+      </dl>
+      <details className="tech">
+        <summary>Add a proxy address manually</summary>
+        <div className="row" style={{ alignItems: 'flex-end', marginTop: 8 }}>
+          <Field label="IP address or network" htmlFor="proxy-add"><input id="proxy-add" value={manual} placeholder="e.g. 172.31.0.0/16" onChange={(e) => setManual(e.target.value)} /></Field>
+          <button className="btn" disabled={!manual.trim()} onClick={() => { save({ trust_proxy: manual.trim() }, 'Proxy trusted'); setManual('') }}>Trust</button>
+        </div>
+      </details>
+    </fieldset>
+  )
+}
+
 function AccessSettings() {
+  const { refresh } = useAuth()
   const r = useResource<any>('/api/settings')
   const toast = useToast()
   const [origin, setOrigin] = useState<string | null>(null)
@@ -131,7 +169,7 @@ function AccessSettings() {
   const [key, setKey] = useState('')
   const zones: string[] = (Intl as any).supportedValuesOf ? (Intl as any).supportedValuesOf('timeZone') : ['UTC']
   async function save(body: any, msg: string) {
-    try { const s = await api('/api/settings', { method: 'PUT', body }); r.setData(s); setDisplayTimezone(s.timezone); toast(msg) } catch (e: any) { toast(e.message, 'bad') }
+    try { const s = await api('/api/settings', { method: 'PUT', body }); r.setData(s); setDisplayTimezone(s.timezone); toast(msg); refresh() } catch (e: any) { toast(e.message, 'bad') }
   }
   if (!r.data) return <section className="card"><Loading /></section>
   const s = r.data
@@ -144,7 +182,8 @@ function AccessSettings() {
             <button className="btn" onClick={() => save({ public_origin: origin ?? s.current_origin }, 'Public address saved')}>Save</button>
             {!s.public_origin ? <button className="btn btn-ghost" onClick={() => save({ public_origin: s.current_origin }, 'Public address saved')}>Use current</button> : null}</div>
         </Field>
-        {s.insecure_transport ? <Notice kind="warn" title="HTTPS is not set up">Passkeys need HTTPS. Use the built-in self-signed option (TLS_SELF_SIGNED=true), mount your own certificate (TLS_CERT_FILE/TLS_KEY_FILE), or put the webui behind your NAS’s reverse proxy. See docs/https.md.</Notice> : null}
+        {s.insecure_transport ? <Notice kind="warn" title="This page is not using HTTPS">Open the web UI through your reverse proxy’s https:// address, or enable the built-in HTTPS option (TLS_SELF_SIGNED=true). Passkeys need HTTPS. See docs/https-and-passkeys.md.</Notice> : null}
+        <ProxySettings s={s} save={save} />
         <Field label="Timezone for dates and day boundaries" htmlFor="tz">
           <div className="row"><select id="tz" style={{ flex: '1 1 220px' }} value={tz ?? s.timezone} onChange={(e) => setTz(e.target.value)}>{zones.map((z) => <option key={z}>{z}</option>)}</select>
             <button className="btn" onClick={() => save({ timezone: tz ?? s.timezone }, 'Timezone saved')}>Save</button>

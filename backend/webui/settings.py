@@ -63,6 +63,10 @@ def _networks(raw: str | None) -> list[ipaddress.IPv4Network | ipaddress.IPv6Net
     return out
 
 
+def parse_trusted(raw: str | None) -> list:
+    return _networks(raw)
+
+
 @dataclass
 class Settings:
     # Paths

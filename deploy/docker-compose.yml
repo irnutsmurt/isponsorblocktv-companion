@@ -53,7 +53,7 @@ services:
       # SETUP_TOKEN: choose-a-long-random-string   # optional; otherwise a one-time token is printed in this container's log
       # PUBLIC_ORIGIN: https://isbtv.example.home   # required for passkeys
       # TLS_SELF_SIGNED: "true"                     # built-in HTTPS with a self-signed certificate
-      # TRUSTED_PROXIES: 172.16.0.0/12              # only if a reverse proxy terminates TLS
+      # TRUSTED_PROXIES: 172.31.0.0/16            # optional: or click "Trust" on Account & security → Access
       # LOG_FILE_ENABLED: "true"                    # optional rotating files in /data/logs
     volumes:
       - /PATH_TO_WEBUI_DATA:/data
