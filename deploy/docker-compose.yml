@@ -13,7 +13,7 @@ services:
       options: { max-size: "10m", max-file: "5" }
 
   docker-gate:                            # owns the Docker socket; exposes ONLY inspect/logs/restart of one container
-    image: ghcr.io/your-namespace/isponsorblocktv-companion:latest   # same image, different entrypoint
+    image: ghcr.io/irnutsmurt/isponsorblocktv-companion:latest   # same image, different entrypoint
     container_name: isbtv-docker-gate
     restart: unless-stopped
     user: "0:0"                           # needs the socket; alternatively "0:<docker gid>"
@@ -37,7 +37,7 @@ services:
       options: { max-size: "5m", max-file: "2" }
 
   companion:
-    image: ghcr.io/your-namespace/isponsorblocktv-companion:latest   # or build: .
+    image: ghcr.io/irnutsmurt/isponsorblocktv-companion:latest   # or build: .
     container_name: isbtv-companion
     restart: unless-stopped
     user: "1000:1000"                     # must be able to write the iSponsorBlockTV data folder

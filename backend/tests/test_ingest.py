@@ -10,7 +10,11 @@ import pytest
 
 from conftest import FIXTURES, SCREEN_A
 
-UPSTREAM_SRC = Path("/home/rob/Documents/scripts/isponsorblocktv/src/iSponsorBlockTV/api_helpers.py")
+import os
+
+# Upstream iSponsorBlockTV checkout used to compare segment merging with upstream's own code.
+# Set UPSTREAM_SRC_DIR to its repository root; defaults to a sibling "isponsorblocktv" folder.
+UPSTREAM_SRC = Path(os.getenv("UPSTREAM_SRC_DIR", Path(__file__).resolve().parents[3] / "isponsorblocktv")) / "src" / "iSponsorBlockTV" / "api_helpers.py"
 
 
 def test_parser_classifies_and_redacts():

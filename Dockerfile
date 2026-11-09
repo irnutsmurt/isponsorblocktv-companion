@@ -19,7 +19,8 @@ ARG VERSION=0.1.0
 LABEL org.opencontainers.image.title="iSponsorBlockTV Companion" \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.description="Secure web UI for iSponsorBlockTV: pairing, configuration, statistics and diagnostics" \
-      org.opencontainers.image.licenses="GPL-3.0-or-later"
+      org.opencontainers.image.licenses="GPL-3.0-or-later" \
+      org.opencontainers.image.source="https://github.com/irnutsmurt/isponsorblocktv-companion"
 RUN apk add --no-cache tzdata && \
     addgroup -g 1000 companion && adduser -D -H -u 1000 -G companion companion && \
     mkdir -p /data /upstream-data && chown 1000:1000 /data
