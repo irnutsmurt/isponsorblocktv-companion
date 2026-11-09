@@ -1,0 +1,70 @@
+# Additive example: your existing iSponsorBlockTV service is unchanged except for the
+# logging limits (recommended, optional). Copy the `companion` and `docker-gate` services
+# into your stack. See docs/installation.md.
+services:
+  iSponsorBlockTV:                        # ← your existing service, unchanged
+    image: ghcr.io/dmunozv04/isponsorblocktv
+    container_name: iSponsorBlockTV
+    restart: unless-stopped
+    volumes:
+      - /PATH_TO_YOUR_DATA_DIR:/app/data
+    logging:                              # optional: bounds Docker's own copy of upstream output
+      driver: json-file
+      options: { max-size: "10m", max-file: "5" }
+
+  docker-gate:                            # owns the Docker socket; exposes ONLY inspect/logs/restart of one container
+    image: ghcr.io/your-namespace/isponsorblocktv-companion:latest   # same image, different entrypoint
+    container_name: isbtv-docker-gate
+    restart: unless-stopped
+    user: "0:0"                           # needs the socket; alternatively "0:<docker gid>"
+    entrypoint: ["python", "-m", "companion.dockerproxy"]
+    environment:
+      GATE_TARGET_CONTAINER: iSponsorBlockTV
+      GATE_ALLOW_RESTART: "true"          # "false" = read-only; you then restart iSponsorBlockTV yourself
+      GATE_TOKEN: change-me-to-a-long-random-string
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock   # ':ro' would NOT make the API read-only; the gate does
+    networks: [isbtv-internal]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,urllib.request as u;u.urlopen(u.Request('http://127.0.0.1:2375/_ping',headers={'X-Gate-Token':os.environ.get('GATE_TOKEN','')}),timeout=4)"]
+      interval: 30s
+      timeout: 5s
+    logging:
+      driver: json-file
+      options: { max-size: "5m", max-file: "2" }
+
+  companion:
+    image: ghcr.io/your-namespace/isponsorblocktv-companion:latest   # or build: .
+    container_name: isbtv-companion
+    restart: unless-stopped
+    user: "1000:1000"                     # must be able to write the iSponsorBlockTV data folder
+    depends_on: [docker-gate]
+    ports:
+      - "8099:8099"                       # the only published port
+    environment:
+      TZ: Europe/London                   # your timezone (display default)
+      UPSTREAM_CONTAINER: iSponsorBlockTV
+      DOCKER_HOST: tcp://docker-gate:2375
+      GATE_TOKEN: change-me-to-a-long-random-string   # must match the gate
+      LOG_SOURCE: docker
+      # SETUP_TOKEN: choose-a-long-random-string   # optional; otherwise a one-time token is printed in this container's log
+      # PUBLIC_ORIGIN: https://isbtv.example.home   # required for passkeys
+      # TLS_SELF_SIGNED: "true"                     # built-in HTTPS with a self-signed certificate
+      # TRUSTED_PROXIES: 172.16.0.0/12              # only if a reverse proxy terminates TLS
+      # LOG_FILE_ENABLED: "true"                    # optional rotating files in /data/logs
+    volumes:
+      - /PATH_TO_COMPANION_DATA:/data
+      - /PATH_TO_YOUR_DATA_DIR:/upstream-data      # same folder iSponsorBlockTV uses
+    networks: [isbtv-internal, default]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+networks:
+  isbtv-internal:
+    internal: true                        # the Docker API proxy is unreachable from outside
