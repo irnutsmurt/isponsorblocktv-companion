@@ -50,7 +50,7 @@ class BudgetedRotatingFileHandler(logging.Handler):
         self._open_day: str | None = None
         self._maintenance_lock = threading.Lock()
         self.degraded: str | None = None
-        self._last_fallback = 0.0
+        self._last_fallback: float | None = None  # first notice always printed, then at most one per minute
         self.rotations = 0
         self.compress_failures = 0
         self._open()
@@ -86,7 +86,7 @@ class BudgetedRotatingFileHandler(logging.Handler):
 
     def _fallback(self, text: str) -> None:
         now = time.monotonic()
-        if now - self._last_fallback >= 60:
+        if self._last_fallback is None or now - self._last_fallback >= 60:
             self._last_fallback = now
             try:
                 sys.stderr.write(f"[webui-logging degraded] {self.degraded}: {text[:300]}\n")
