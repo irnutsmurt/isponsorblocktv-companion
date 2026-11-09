@@ -107,7 +107,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         finally:
             await _shutdown(app)
 
-    app = FastAPI(title="iSponsorBlockTV Companion", version=__version__, docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
+    app = FastAPI(title="iSponsorBlockTV Web UI", version=__version__, docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
     app.state.settings = settings
     app.state.runtime_settings = {}
     app.state.pairing_tickets = {}
@@ -121,7 +121,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.exception_handler(Exception)
     async def unhandled(request: Request, exc: Exception):
         log.exception("http.unhandled", "Unhandled error while serving a request", path=request.url.path)
-        return JSONResponse({"detail": "Internal error. Check the companion logs (request id in header)."}, status_code=500)
+        return JSONResponse({"detail": "Internal error. Check the webui logs (request id in header)."}, status_code=500)
 
     app.add_middleware(SecurityMiddleware, max_body=settings.max_request_bytes)
 
@@ -157,13 +157,13 @@ async def _startup(app: FastAPI, settings: Settings) -> None:
         os.chmod(settings.data_dir, 0o700)
     except OSError:
         pass
-    log.info("app.starting", f"iSponsorBlockTV Companion {__version__} starting", version=__version__, settings=settings.describe())
+    log.info("app.starting", f"iSponsorBlockTV Web UI {__version__} starting", version=__version__, settings=settings.describe())
 
     db = Database(settings.db_path)
     try:
         await db.open()
     except Exception as exc:
-        log.critical("db.open_failed", "Cannot open the companion database; authentication will fail closed", error=str(exc), exc_info=True)
+        log.critical("db.open_failed", "Cannot open the webui database; authentication will fail closed", error=str(exc), exc_info=True)
         db.healthy = False
     st.db = db
 
@@ -235,7 +235,7 @@ async def _startup(app: FastAPI, settings: Settings) -> None:
         await st.maintenance.start()
         st.config_watch = asyncio.create_task(_watch_config(st), name="config-watch")
         await st.bootstrap.announce_if_needed()
-    log.info("app.started", "Companion ready", port=settings.port, auth_required=True)
+    log.info("app.started", "Web UI ready", port=settings.port, auth_required=True)
 
 
 async def _watch_config(st) -> None:
@@ -248,7 +248,7 @@ async def _watch_config(st) -> None:
             if snap.etag != last_etag:
                 own = snap.etag == st.config_store.last_written_etag
                 if not own:
-                    log.info("config.changed_externally", "config.json changed outside the companion", previous=last_etag[:12], current=snap.etag[:12], parse_error=snap.parse_error)
+                    log.info("config.changed_externally", "config.json changed outside the webui", previous=last_etag[:12], current=snap.etag[:12], parse_error=snap.parse_error)
                 last_etag = snap.etag
                 if own:
                     continue
@@ -263,7 +263,7 @@ async def _watch_config(st) -> None:
 
 async def _shutdown(app: FastAPI) -> None:
     st = app.state
-    log.info("app.stopping", "Companion shutting down")
+    log.info("app.stopping", "Web UI shutting down")
     for name in ("config_watch",):
         t = getattr(st, name, None)
         if t:
@@ -281,7 +281,7 @@ async def _shutdown(app: FastAPI) -> None:
         await st.http.close()
     if getattr(st, "db", None):
         await st.db.close()
-    log.info("app.stopped", "Companion stopped")
+    log.info("app.stopped", "Web UI stopped")
     shutdown_logging()
 
 

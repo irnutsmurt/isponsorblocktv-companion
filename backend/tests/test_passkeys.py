@@ -16,8 +16,8 @@ from cryptography.hazmat.primitives.asymmetric import ec
 
 from conftest import PASSWORD
 
-ORIGIN = "https://companion.example.test"
-RP_ID = "companion.example.test"
+ORIGIN = "https://webui.example.test"
+RP_ID = "webui.example.test"
 
 
 def b64u(b: bytes) -> str:
@@ -60,10 +60,10 @@ class SoftAuthenticator:
 @pytest.fixture
 def pk_client(env, monkeypatch):
     monkeypatch.setenv("PUBLIC_ORIGIN", ORIGIN)
-    from companion.settings import reset_settings_for_tests, get_settings
+    from webui.settings import reset_settings_for_tests, get_settings
     reset_settings_for_tests()
     from fastapi.testclient import TestClient
-    from companion.main import create_app
+    from webui.main import create_app
     with TestClient(create_app(get_settings()), base_url=ORIGIN) as c:
         c.headers.update({"X-Requested-With": "fetch", "Origin": ORIGIN})
         assert c.post("/api/auth/setup/complete", json={"setup_token": "test-setup-token-123456", "username": "admin", "password": PASSWORD}).status_code == 200
@@ -152,10 +152,10 @@ def test_removal_requires_recent_auth_and_blocks_login(pk_client):
 
 def test_http_origin_blocks_enrollment(env, monkeypatch):
     monkeypatch.setenv("PUBLIC_ORIGIN", "http://192.168.1.10:8099")
-    from companion.settings import reset_settings_for_tests, get_settings
+    from webui.settings import reset_settings_for_tests, get_settings
     reset_settings_for_tests()
     from fastapi.testclient import TestClient
-    from companion.main import create_app
+    from webui.main import create_app
     with TestClient(create_app(get_settings()), base_url="http://192.168.1.10:8099") as c:
         c.headers.update({"X-Requested-With": "fetch"})
         c.post("/api/auth/setup/complete", json={"setup_token": "test-setup-token-123456", "username": "admin", "password": PASSWORD})

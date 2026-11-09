@@ -1,4 +1,4 @@
-"""YouTube calls the companion makes itself: pairing, screen status, and key-free metadata.
+"""YouTube calls the webui makes itself: pairing, screen status, and key-free metadata.
 
 Pairing mirrors upstream ``api_helpers.ApiHelper.pair_with_code`` exactly; nothing here opens a
 lounge session (``bc/bind``), so no competing remote-control session is ever created.
@@ -25,7 +25,7 @@ import os
 LOUNGE_API = os.getenv("YOUTUBE_LOUNGE_API_BASE", "https://www.youtube.com/api/lounge").rstrip("/")
 OEMBED = "https://www.youtube.com/oembed"
 DATA_API = "https://www.googleapis.com/youtube/v3/"
-USER_AGENT = "iSponsorBlockTV-Companion/0.1"
+USER_AGENT = "iSponsorBlockTV-WebUI/0.1"
 VIDEO_ID_RE = re.compile(r"^[A-Za-z0-9_-]{11}$")
 
 
@@ -78,7 +78,7 @@ class YouTubeClient:
                 except Exception as exc:
                     raise PairingError("YouTube returned an unreadable response.", "upstream_error") from exc
         except asyncio.TimeoutError as exc:
-            raise PairingError("YouTube did not answer within 15 seconds. Check the companion's internet access and try again.", "timeout") from exc
+            raise PairingError("YouTube did not answer within 15 seconds. Check the webui's internet access and try again.", "timeout") from exc
         except aiohttp.ClientError as exc:
             raise PairingError(f"Could not reach YouTube: {exc.__class__.__name__}.", "network") from exc
         screen = (payload or {}).get("screen") or {}

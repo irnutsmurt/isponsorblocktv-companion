@@ -1,7 +1,7 @@
 """Minimal Docker Engine API client (aiohttp) for inspect, logs and a scoped restart.
 
 Works against a unix socket or a TCP endpoint such as a docker-socket-proxy. Only the endpoints
-this companion needs are implemented; nothing here can create containers, exec, or mount volumes.
+this webui needs are implemented; nothing here can create containers, exec, or mount volumes.
 """
 
 from __future__ import annotations

@@ -6,10 +6,10 @@ import pytest
 
 from conftest import PASSWORD
 
-PROTECTED_GET = ["/api/devices", "/api/config", "/api/stats/overview", "/api/activity", "/api/channels", "/api/logs/companion",
+PROTECTED_GET = ["/api/devices", "/api/config", "/api/stats/overview", "/api/activity", "/api/channels", "/api/logs/webui",
                  "/api/logs/upstream", "/api/logs/levels", "/api/health", "/api/capabilities", "/api/diagnostics/bundle",
                  "/api/audit", "/api/settings", "/api/stream", "/api/auth/me", "/api/auth/sessions", "/api/config/backups",
-                 "/api/logs/companion/download", "/api/devices/1", "/api/config/jobs/latest"]
+                 "/api/logs/webui/download", "/api/devices/1", "/api/config/jobs/latest"]
 PROTECTED_MUTATE = [("post", "/api/pairing/verify", {"code": "123412341234"}), ("post", "/api/devices", {"ticket": "x"}),
                     ("put", "/api/config", {"config": {}}), ("post", "/api/config/apply", {}), ("post", "/api/logs/debug-mode", {}),
                     ("put", "/api/logs/levels", {"level": "DEBUG"}), ("put", "/api/settings", {"timezone": "UTC"}),
@@ -64,8 +64,8 @@ def test_concurrent_setup_creates_one_admin(app, env):
 
 def test_bootstrap_disabled_after_restart(env):
     from fastapi.testclient import TestClient
-    from companion.main import create_app
-    from companion.settings import get_settings
+    from webui.main import create_app
+    from webui.settings import get_settings
     with TestClient(create_app(get_settings())) as c:
         c.headers.update({"X-Requested-With": "fetch"})
         assert c.post("/api/auth/setup/complete", json={"setup_token": "test-setup-token-123456", "username": "admin", "password": PASSWORD}).status_code == 200
@@ -77,14 +77,14 @@ def test_bootstrap_disabled_after_restart(env):
 
 def test_generated_token_never_in_ring_buffer(env, monkeypatch):
     monkeypatch.delenv("SETUP_TOKEN")
-    from companion.settings import reset_settings_for_tests, get_settings
+    from webui.settings import reset_settings_for_tests, get_settings
     reset_settings_for_tests()
     import io
-    from companion.logging import setup_logging, get_logging_state
+    from webui.logging import setup_logging, get_logging_state
     console = io.StringIO()
     setup_logging(level="DEBUG", stream=console)
     from fastapi.testclient import TestClient
-    from companion.main import create_app
+    from webui.main import create_app
     with TestClient(create_app(get_settings())) as c:
         import time; time.sleep(0.3)
         out = console.getvalue()
@@ -140,8 +140,8 @@ def test_csrf_protection(client, admin):
 
 def test_remember_me_session_and_restart(env):
     from fastapi.testclient import TestClient
-    from companion.main import create_app
-    from companion.settings import get_settings
+    from webui.main import create_app
+    from webui.settings import get_settings
     with TestClient(create_app(get_settings())) as c:
         c.headers.update({"X-Requested-With": "fetch"})
         c.post("/api/auth/setup/complete", json={"setup_token": "test-setup-token-123456", "username": "admin", "password": PASSWORD})
@@ -218,7 +218,7 @@ def test_long_passphrase_not_truncated(client, admin):
 
 
 def _sid(client):
-    from companion.util import sha256_hex
+    from webui.util import sha256_hex
     return sha256_hex(client.cookies.get("isbtv_session"))
 
 

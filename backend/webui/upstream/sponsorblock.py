@@ -17,7 +17,7 @@ import aiohttp
 from ..logging import get_logger
 
 log = get_logger("upstream.sponsorblock")
-USER_AGENT = "iSponsorBlockTV-Companion/0.1"
+USER_AGENT = "iSponsorBlockTV-WebUI/0.1"
 
 
 def merge_segments(raw_segments: list[dict], minimum_skip_length: float) -> list[dict]:

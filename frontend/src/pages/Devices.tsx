@@ -79,7 +79,7 @@ export default function DevicesPage() {
         <button className="btn btn-primary" onClick={() => setPairOpen({})} disabled={!!cfg.data?.parse_error || cfg.data?.writable === false}><Icon name="plus" /> Add a TV</button>
       </div>
       {cfg.data?.parse_error ? <Notice kind="bad" title="iSponsorBlockTV’s config.json cannot be read">{cfg.data.parse_error} Fix or restore it on the Configuration page before changing devices.</Notice> : null}
-      {cfg.data && cfg.data.writable === false ? <Notice kind="bad" title="The companion cannot write the configuration">{cfg.data.write_problem}</Notice> : null}
+      {cfg.data && cfg.data.writable === false ? <Notice kind="bad" title="The webui cannot write the configuration">{cfg.data.write_problem}</Notice> : null}
       <CollectionBanner collection={list.data?.collection} />
       {error ? <ErrorNotice error={error} what="change the device" /> : null}
       {job ? <ApplyJobView job={job} onRetry={() => mutate('/api/config/apply', {})} onRestartNow={() => mutate('/api/config/apply', {})} /> : null}
@@ -126,7 +126,7 @@ export default function DevicesPage() {
 
       <ConfirmDialog open={!!remove} title={`Remove ${remove?.display_name}?`} confirmLabel={restartMode ? 'Remove and apply' : 'Remove'} danger busy={busy}
         onCancel={() => setRemove(null)} onConfirm={async () => { if (await mutate(`/api/devices/${remove.id}/remove`, { apply: true })) setRemove(null) }}>
-        <p>iSponsorBlockTV will stop skipping on this TV. Its activity history stays in the companion. To use it again you will need a new TV code.</p>
+        <p>iSponsorBlockTV will stop skipping on this TV. Its activity history stays in the webui. To use it again you will need a new TV code.</p>
         {configured.length === 1 ? <Notice kind="bad">This is the last configured TV. iSponsorBlockTV refuses to start with no devices, so this change is blocked.</Notice> : null}
       </ConfirmDialog>
 

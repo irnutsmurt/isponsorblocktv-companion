@@ -1,7 +1,7 @@
 """Single-container Docker API gate ("isbtv-docker-gate").
 
 Runs as a separate sidecar that owns /var/run/docker.sock and exposes, on an internal network,
-only what the companion needs for ONE named container:
+only what the webui needs for ONE named container:
 
     GET  /_ping                                   GET /version
     GET  /containers/<target>/json                (Env filtered to iSPBTV_* keys, Mounts/Network trimmed)

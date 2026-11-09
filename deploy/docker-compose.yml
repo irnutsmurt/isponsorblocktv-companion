@@ -1,5 +1,5 @@
 # Additive example: your existing iSponsorBlockTV service is unchanged except for the
-# logging limits (recommended, optional). Copy the `companion` and `docker-gate` services
+# logging limits (recommended, optional). Copy the `webui` and `docker-gate` services
 # into your stack. See docs/installation.md.
 services:
   iSponsorBlockTV:                        # ← your existing service, unchanged
@@ -13,11 +13,11 @@ services:
       options: { max-size: "10m", max-file: "5" }
 
   docker-gate:                            # owns the Docker socket; exposes ONLY inspect/logs/restart of one container
-    image: ghcr.io/irnutsmurt/isponsorblocktv-companion:latest   # same image, different entrypoint
+    image: ghcr.io/irnutsmurt/isponsorblocktv-webui:latest   # same image, different entrypoint
     container_name: isbtv-docker-gate
     restart: unless-stopped
     user: "0:0"                           # needs the socket; alternatively "0:<docker gid>"
-    entrypoint: ["python", "-m", "companion.dockerproxy"]
+    entrypoint: ["python", "-m", "webui.dockerproxy"]
     environment:
       GATE_TARGET_CONTAINER: iSponsorBlockTV
       GATE_ALLOW_RESTART: "true"          # "false" = read-only; you then restart iSponsorBlockTV yourself
@@ -36,9 +36,9 @@ services:
       driver: json-file
       options: { max-size: "5m", max-file: "2" }
 
-  companion:
-    image: ghcr.io/irnutsmurt/isponsorblocktv-companion:latest   # or build: .
-    container_name: isbtv-companion
+  webui:
+    image: ghcr.io/irnutsmurt/isponsorblocktv-webui:latest   # or build: .
+    container_name: isbtv-webui
     restart: unless-stopped
     user: "1000:1000"                     # must be able to write the iSponsorBlockTV data folder
     depends_on: [docker-gate]
@@ -56,7 +56,7 @@ services:
       # TRUSTED_PROXIES: 172.16.0.0/12              # only if a reverse proxy terminates TLS
       # LOG_FILE_ENABLED: "true"                    # optional rotating files in /data/logs
     volumes:
-      - /PATH_TO_COMPANION_DATA:/data
+      - /PATH_TO_WEBUI_DATA:/data
       - /PATH_TO_YOUR_DATA_DIR:/upstream-data      # same folder iSponsorBlockTV uses
     networks: [isbtv-internal, default]
     security_opt: ["no-new-privileges:true"]

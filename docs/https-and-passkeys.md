@@ -1,6 +1,6 @@
 # HTTPS, reverse proxies and passkeys
 
-The companion always requires sign-in, but on plain HTTP your password and session cookie cross the network
+The web UI always requires sign-in, but on plain HTTP your password and session cookie cross the network
 unencrypted. The UI warns about this on every page. Choose one of these:
 
 ## Option A — built-in HTTPS (simplest)
@@ -24,13 +24,13 @@ refuse passkeys on sites with an untrusted certificate**; use option B or C if y
       PUBLIC_ORIGIN: https://isbtv.example.home:8099
 ```
 
-Mount the files read-only. Restart the companion after renewing them.
+Mount the files read-only. Restart the web UI after renewing them.
 
 ## Option C — behind a reverse proxy (Synology Login Portal, Nginx Proxy Manager, Traefik, Caddy)
 
-1. Proxy `https://isbtv.example.home` → `http://<companion>:8099`. Pass `Host`, `X-Forwarded-For` and
+1. Proxy `https://isbtv.example.home` → `http://<webui>:8099`. Pass `Host`, `X-Forwarded-For` and
    `X-Forwarded-Proto`. Disable response buffering for `/api/stream` (Server-Sent Events) if your proxy buffers.
-2. Tell the companion which proxy to trust, and nothing else:
+2. Tell the web UI which proxy to trust, and nothing else:
    ```yaml
       TRUSTED_PROXIES: 172.20.0.5/32          # the proxy container's address or network
       PUBLIC_ORIGIN: https://isbtv.example.home

@@ -37,7 +37,7 @@ def ensure_self_signed(directory: Path, public_origin: str | None) -> tuple[Path
         except ValueError:
             names.append(x509.DNSName(host))
     key = ec.generate_private_key(ec.SECP256R1())
-    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, host or "isponsorblocktv-companion")])
+    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, host or "isponsorblocktv-webui")])
     now = datetime.datetime.now(datetime.timezone.utc)
     cert = (x509.CertificateBuilder().subject_name(subject).issuer_name(subject).public_key(key.public_key())
             .serial_number(x509.random_serial_number()).not_valid_before(now - datetime.timedelta(days=1))

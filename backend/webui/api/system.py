@@ -118,19 +118,19 @@ async def capabilities(request: Request, session: dict = Depends(current_session
 
 @router.get("/api/diagnostics/bundle")
 async def diagnostics_bundle(request: Request, session: dict = Depends(recent_auth), include_upstream_logs: bool = True, include_config: bool = False):
-    """Sanitized zip: health, capabilities, redacted config (optional), recent companion + upstream logs. Bounded size."""
+    """Sanitized zip: health, capabilities, redacted config (optional), recent webui + upstream logs. Bounded size."""
     st = request.app.state
     health = await _full_health(request)
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
-        z.writestr("README.txt", "iSponsorBlockTV Companion diagnostic bundle\nGenerated: %s\nSecrets, screen IDs, cookies and the database are excluded. Device names and video IDs are private operational data.\n" % now_iso())
+        z.writestr("README.txt", "iSponsorBlockTV Web UI diagnostic bundle\nGenerated: %s\nSecrets, screen IDs, cookies and the database are excluded. Device names and video IDs are private operational data.\n" % now_iso())
         z.writestr("health.json", json.dumps(health, indent=2, default=str))
         z.writestr("capabilities.json", json.dumps(await capabilities(request, session), indent=2, default=str))
         if include_config:
             snap = st.config_store.read()
             z.writestr("config.redacted.json", json.dumps(redact_config(snap.data) if snap.data else {"exists": snap.exists, "parse_error": snap.parse_error}, indent=2))
         ring = get_logging_state().ring.snapshot()[-3000:]
-        z.writestr("companion-logs.ndjson", "\n".join(json.dumps(r, ensure_ascii=False) for r in ring))
+        z.writestr("webui-logs.ndjson", "\n".join(json.dumps(r, ensure_ascii=False) for r in ring))
         if include_upstream_logs:
             rows = await st.db.fetchall("SELECT at, level, logger, parsed, message FROM upstream_log ORDER BY id DESC LIMIT 3000")
             z.writestr("upstream-logs.ndjson", "\n".join(json.dumps(dict(r), ensure_ascii=False) for r in reversed(rows)))
@@ -145,7 +145,7 @@ async def diagnostics_bundle(request: Request, session: dict = Depends(recent_au
         raise HTTPException(http.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Diagnostic bundle exceeded the 8 MiB limit.")
     await st.audit.record("diagnostics.exported", "ok", actor=actor(session), fields=["include_config" if include_config else "no_config"], ip=request.state.info.client_ip)
     return StreamingResponse(iter([data]), media_type="application/zip",
-                             headers={"Content-Disposition": f'attachment; filename="companion-diagnostics-{int(time.time())}.zip"'})
+                             headers={"Content-Disposition": f'attachment; filename="webui-diagnostics-{int(time.time())}.zip"'})
 
 
 @router.get("/api/audit")

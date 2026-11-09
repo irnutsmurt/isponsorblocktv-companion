@@ -1,4 +1,4 @@
-"""Companion log viewer, level control, temporary debug mode, upstream log viewer."""
+"""Web UI log viewer, level control, temporary debug mode, upstream log viewer."""
 
 from __future__ import annotations
 
@@ -50,8 +50,8 @@ def _filter(records: list[dict], level: str | None, component: str | None, searc
     return out
 
 
-@router.get("/companion")
-async def companion_logs(request: Request, session: dict = Depends(current_session), level: str | None = None, component: str | None = None,
+@router.get("/webui")
+async def webui_logs(request: Request, session: dict = Depends(current_session), level: str | None = None, component: str | None = None,
                          search: str | None = None, since: str | None = None, until: str | None = None,
                          after_seq: int = Query(0, ge=0), limit: int = Query(200, ge=1, le=1000)):
     state = get_logging_state()
@@ -64,27 +64,27 @@ async def companion_logs(request: Request, session: dict = Depends(current_sessi
             "file": state.file_handler.status() if state.file_handler else {"enabled": False}}
 
 
-@router.get("/companion/download")
-async def companion_logs_download(request: Request, session: dict = Depends(current_session), level: str | None = None, component: str | None = None, search: str | None = None):
+@router.get("/webui/download")
+async def webui_logs_download(request: Request, session: dict = Depends(current_session), level: str | None = None, component: str | None = None, search: str | None = None):
     state = get_logging_state()
     records = _filter(state.ring.snapshot(), level, component, search, None, None)
     buf = io.StringIO()
     for r in records:
         buf.write(json.dumps(r, ensure_ascii=False) + "\n")
     data = buf.getvalue().encode("utf-8")
-    log.info("logs.downloaded", "Companion logs downloaded", records=len(records), actor=session["username"])
+    log.info("logs.downloaded", "Web UI logs downloaded", records=len(records), actor=session["username"])
     return StreamingResponse(iter([data]), media_type="application/x-ndjson",
-                             headers={"Content-Disposition": f'attachment; filename="companion-logs-{int(time.time())}.ndjson"'})
+                             headers={"Content-Disposition": f'attachment; filename="webui-logs-{int(time.time())}.ndjson"'})
 
 
-@router.get("/companion/files")
-async def companion_log_files(request: Request, session: dict = Depends(current_session)):
+@router.get("/webui/files")
+async def webui_log_files(request: Request, session: dict = Depends(current_session)):
     state = get_logging_state()
     if not state.file_handler:
         return {"enabled": False, "files": []}
     d = state.file_handler.directory
     files = []
-    for p in sorted(d.glob("companion*"), key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True):
+    for p in sorted(d.glob("webui*"), key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True):
         try:
             st = p.stat()
             files.append({"name": p.name, "size": st.st_size, "mtime": st.st_mtime, "compressed": p.suffix == ".gz"})
@@ -93,10 +93,10 @@ async def companion_log_files(request: Request, session: dict = Depends(current_
     return {"enabled": True, "status": state.file_handler.status(), "files": files}
 
 
-@router.get("/companion/files/{name}")
-async def companion_log_file(name: str, request: Request, session: dict = Depends(current_session), tail_bytes: int = Query(256 * 1024, ge=1024, le=4 * 1024 * 1024)):
+@router.get("/webui/files/{name}")
+async def webui_log_file(name: str, request: Request, session: dict = Depends(current_session), tail_bytes: int = Query(256 * 1024, ge=1024, le=4 * 1024 * 1024)):
     state = get_logging_state()
-    if not state.file_handler or "/" in name or ".." in name or not name.startswith("companion"):
+    if not state.file_handler or "/" in name or ".." in name or not name.startswith("webui"):
         raise HTTPException(http.HTTP_404_NOT_FOUND, "Not found.")
     p = state.file_handler.directory / name
     if not p.exists():

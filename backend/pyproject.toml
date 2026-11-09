@@ -1,7 +1,7 @@
 [project]
-name = "isponsorblocktv-companion"
+name = "isponsorblocktv-webui"
 version = "0.1.0"
-description = "Companion web app for iSponsorBlockTV: secure setup, pairing, configuration, statistics and diagnostics"
+description = "Web UI web app for iSponsorBlockTV: secure setup, pairing, configuration, statistics and diagnostics"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115",
@@ -27,4 +27,4 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["companion*"]
+include = ["webui*"]

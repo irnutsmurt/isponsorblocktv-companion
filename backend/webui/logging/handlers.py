@@ -24,7 +24,7 @@ from pathlib import Path
 
 
 class BudgetedRotatingFileHandler(logging.Handler):
-    ACTIVE_NAME = "companion.log"
+    ACTIVE_NAME = "webui.log"
 
     def __init__(
         self,
@@ -89,7 +89,7 @@ class BudgetedRotatingFileHandler(logging.Handler):
         if now - self._last_fallback >= 60:
             self._last_fallback = now
             try:
-                sys.stderr.write(f"[companion-logging degraded] {self.degraded}: {text[:300]}\n")
+                sys.stderr.write(f"[webui-logging degraded] {self.degraded}: {text[:300]}\n")
             except Exception:
                 pass
 
@@ -132,12 +132,12 @@ class BudgetedRotatingFileHandler(logging.Handler):
             self._stream.close()
             self._stream = None
         stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
-        target = self.directory / f"companion-{stamp}.log"
+        target = self.directory / f"webui-{stamp}.log"
         n = 0
         # Never reuse a name whose compressed archive (or in-progress compression) already exists.
         while target.exists() or target.with_suffix(".log.gz").exists() or target.with_suffix(".log.gz.tmp").exists():
             n += 1
-            target = self.directory / f"companion-{stamp}-{n}.log"
+            target = self.directory / f"webui-{stamp}-{n}.log"
         os.replace(self.active_path, target)
         self.rotations += 1
         self._open()
@@ -171,7 +171,7 @@ class BudgetedRotatingFileHandler(logging.Handler):
 
     def _archives(self) -> list[Path]:
         return sorted(
-            [p for p in self.directory.glob("companion-*.log*") if p.name != self.ACTIVE_NAME],
+            [p for p in self.directory.glob("webui-*.log*") if p.name != self.ACTIVE_NAME],
             key=lambda p: p.stat().st_mtime if p.exists() else 0,
         )
 

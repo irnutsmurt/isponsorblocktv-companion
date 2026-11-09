@@ -204,7 +204,7 @@ class ApplyService:
                 return True, f"iSponsorBlockTV loaded {len(loaded)} device(s) after the restart."
             missing = len(expected_ids - loaded)
             if self.collector.status.status != "connected":
-                return False, f"Saved, but the companion lost the log stream ({self.collector.status.detail}); could not confirm devices loaded."
+                return False, f"Saved, but the webui lost the log stream ({self.collector.status.detail}); could not confirm devices loaded."
             return False, (f"iSponsorBlockTV restarted but {missing} of {len(expected_ids)} device(s) did not report a YouTube session refresh within "
                            f"{int(timeout)} s. Check the device's error state; a revoked screen ID needs re-pairing.")
         finally:

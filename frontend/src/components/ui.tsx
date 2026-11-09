@@ -27,8 +27,8 @@ export function ErrorNotice({ error, onRetry, what }: { error: unknown; onRetry?
   const e = error as ApiError
   const msg = e?.message || String(error)
   let next = 'Try again in a moment.'
-  if (e?.status === 0) next = 'Check that this device can reach the companion, then retry.'
-  else if (e?.status === 503) next = 'The companion cannot use its storage. Open Diagnostics or check the container logs.'
+  if (e?.status === 0) next = 'Check that this device can reach the webui, then retry.'
+  else if (e?.status === 503) next = 'The webui cannot use its storage. Open Diagnostics or check the container logs.'
   else if (e?.status === 409) next = 'Reload the latest state before trying again.'
   return (
     <Notice kind="bad" title={what ? `Could not ${what}` : 'Something went wrong'} details={e?.details}

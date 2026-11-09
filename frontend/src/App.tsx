@@ -59,7 +59,7 @@ function Shell() {
     <div className="shell">
       <a href="#main" className="skip-link">Skip to content</a>
       <nav className="sidebar" aria-label="Main">
-        <div className="brand"><img src="/favicon.svg" alt="" /> iSBTV Companion</div>
+        <div className="brand"><img src="/favicon.svg" alt="" /> iSBTV Web UI</div>
         {NAV.map((n) => <NavLink key={n.to} to={n.to} end={n.end} className="nav-link"><Icon name={n.icon} />{n.label}</NavLink>)}
         <div className="sidebar-foot">
           <div className="row subtle" style={{ padding: '0 8px' }}><span>Signed in as <strong>{me?.username}</strong></span></div>
@@ -67,7 +67,7 @@ function Shell() {
         </div>
       </nav>
       <header className="topbar">
-        <div className="brand" style={{ padding: 0 }}><img src="/favicon.svg" alt="" /> Companion</div>
+        <div className="brand" style={{ padding: 0 }}><img src="/favicon.svg" alt="" /> Web UI</div>
         <div className="row"><ThemeToggle /><button className="icon-btn" onClick={logout} aria-label="Sign out"><Icon name="logout" /></button></div>
       </header>
       <main id="main" tabIndex={-1}>
@@ -107,8 +107,8 @@ function Gate() {
   if (status === 'loading') return <div className="auth-wrap"><div role="status">Loading…</div></div>
   if (status === 'error') return (
     <div className="auth-wrap"><div className="card auth-card">
-      <Notice kind="bad" title="The companion is not responding normally" actions={<button className="btn btn-sm" onClick={refresh}>Retry</button>}>
-        <p>{error || 'Unknown error.'} If this persists, check the companion container’s logs on your NAS.</p>
+      <Notice kind="bad" title="The webui is not responding normally" actions={<button className="btn btn-sm" onClick={refresh}>Retry</button>}>
+        <p>{error || 'Unknown error.'} If this persists, check the webui container’s logs on your NAS.</p>
       </Notice>
     </div></div>
   )

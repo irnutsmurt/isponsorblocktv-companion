@@ -19,7 +19,7 @@ def authed(client, admin):
 
 
 def test_validation_mirrors_upstream():
-    from companion.upstream.config_schema import validate_config
+    from webui.upstream.config_schema import validate_config
     assert not validate_config({"devices": []}).ok
     assert not validate_config({"devices": [{"screen_id": ""}]}).ok
     assert not validate_config({"devices": [{"screen_id": "x" * 64}], "channel_whitelist": [{"id": "UC1"}], "apikey": ""}).ok
@@ -123,7 +123,7 @@ def test_backup_bound_and_restore(env, authed):
 
 def test_add_device_flow_without_screen_id_exposure(env, authed, monkeypatch):
     write(env, {"devices": [{"screen_id": SCREEN_A, "name": "First", "offset": 0}], "skip_categories": ["sponsor"]})
-    from companion.upstream.youtube import PairedScreen, YouTubeClient
+    from webui.upstream.youtube import PairedScreen, YouTubeClient
 
     async def fake_pair(self, code):
         return PairedScreen(screen_id=SCREEN_B, name="Bedroom TV")
@@ -159,7 +159,7 @@ def test_invalid_pairing_code_rejected(authed):
 
 
 def test_rejected_pairing_code(authed, monkeypatch):
-    from companion.upstream.youtube import PairingError, YouTubeClient
+    from webui.upstream.youtube import PairingError, YouTubeClient
 
     async def reject(self, code):
         raise PairingError("YouTube did not recognise this code.", "rejected")

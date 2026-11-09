@@ -84,12 +84,12 @@ export default function ConfigPage() {
   return (
     <div>
       <div className="page-head"><div><h1>Configuration</h1><p>iSponsorBlockTV’s settings (<code className="wrap-anywhere">{c.path}</code>). Settings apply to every TV.</p></div></div>
-      {!c.exists ? <Notice kind="info" title="No configuration file yet">Add your first TV on the Devices page; the companion creates a valid config.json with default settings when it saves.</Notice> : null}
-      {c.parse_error ? <Notice kind="bad" title="config.json is not valid">{c.parse_error} The companion will not overwrite it. Restore a backup below or fix the file manually.</Notice> : null}
+      {!c.exists ? <Notice kind="info" title="No configuration file yet">Add your first TV on the Devices page; the webui creates a valid config.json with default settings when it saves.</Notice> : null}
+      {c.parse_error ? <Notice kind="bad" title="config.json is not valid">{c.parse_error} The webui will not overwrite it. Restore a backup below or fix the file manually.</Notice> : null}
       {!c.writable ? <Notice kind="bad" title="Cannot write the configuration" details={c.directory}>{c.write_problem}</Notice> : null}
       {c.has_legacy_atvs ? <Notice kind="bad" title="Legacy “atvs” entry">iSponsorBlockTV 2.x refuses to start while this key exists. <button className="btn btn-sm" onClick={() => form && api('/api/config', { method: 'PUT', body: { config: { ...form, remove_legacy_atvs: true }, expected_etag: baseEtag, apply: true } }).then((r) => setJobInit(r.job)).catch(setError)}>Remove it and apply</button></Notice> : null}
       {c.validation && !c.validation.ok && !c.parse_error ? <Notice kind="warn" title="The file on disk has problems" details={c.validation.errors}>{c.validation.errors.map((e: any) => e.message).join(' ')}</Notice> : null}
-      {c.unknown_keys?.length ? <Notice kind="info">Keys this companion doesn’t manage are preserved unchanged: {c.unknown_keys.join(', ')}.</Notice> : null}
+      {c.unknown_keys?.length ? <Notice kind="info">Keys this webui doesn’t manage are preserved unchanged: {c.unknown_keys.join(', ')}.</Notice> : null}
       {externalChange ? <Notice kind="warn" title="config.json changed outside this page" actions={<button className="btn btn-sm" onClick={reloadFromDisk}>Load latest (discard my edits)</button>}>Saving is blocked until you load the latest version, so nobody’s changes are silently overwritten.</Notice> : null}
       {job ? <ApplyJobView job={job} onRetry={() => api('/api/config/apply', { method: 'POST', body: {} }).then((r) => setJobInit(r.job)).catch(setError)} onRestartNow={() => api('/api/config/apply', { method: 'POST', body: {} }).then((r) => setJobInit(r.job)).catch(setError)} /> : null}
       {!job && c.latest_job && ['saved', 'manual_restart_required', 'failed'].includes(c.latest_job.status) ? <ApplyJobView job={c.latest_job} onRetry={() => api('/api/config/apply', { method: 'POST', body: {} }).then((r) => setJobInit(r.job)).catch(setError)} onRestartNow={() => api('/api/config/apply', { method: 'POST', body: {} }).then((r) => setJobInit(r.job)).catch(setError)} /> : null}

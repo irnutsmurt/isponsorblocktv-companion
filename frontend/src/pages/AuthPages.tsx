@@ -6,7 +6,7 @@ import { Field, Notice, PasswordInput } from '../components/ui'
 import { describeWebAuthnError, getPasskey, passkeysSupported } from '../webauthn'
 
 function Brand() {
-  return <div className="brand"><img src="/favicon.svg" alt="" /> iSponsorBlockTV Companion</div>
+  return <div className="brand"><img src="/favicon.svg" alt="" /> iSponsorBlockTV Web UI</div>
 }
 
 function InsecureWarning() {
@@ -70,7 +70,7 @@ export function SetupPage() {
       <p className="muted">To prove you own this installation, enter the setup token.
         {setupInfo?.token_source === 'env'
           ? ' It is the SETUP_TOKEN value in this container’s environment settings.'
-          : ' Open your NAS’s container manager, view the logs of the companion container, and copy the token printed under “first-time setup”.'}
+          : ' Open your NAS’s container manager, view the logs of the webui container, and copy the token printed under “first-time setup”.'}
       </p>
       {setupInfo?.token_source === 'generated' && typeof setupInfo?.token_expires_in_seconds === 'number' ? (
         <p className="subtle">The current token expires in about {Math.max(1, Math.round(setupInfo.token_expires_in_seconds / 60))} minutes; a new one is printed when it does.</p>
@@ -116,7 +116,7 @@ export function LoginPage() {
       setPw('')
       await refresh()
     } catch (e: any) {
-      setError(e.status === 429 ? e.message : e.status === 0 ? e.message : e.status === 503 ? 'Sign-in is temporarily unavailable because the companion cannot read its account storage.' : 'Incorrect username or password.')
+      setError(e.status === 429 ? e.message : e.status === 0 ? e.message : e.status === 503 ? 'Sign-in is temporarily unavailable because the webui cannot read its account storage.' : 'Incorrect username or password.')
     } finally { setBusy(false) }
   }
 

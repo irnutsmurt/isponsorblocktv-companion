@@ -72,7 +72,7 @@ try {
   await p.screenshot({ path: path.join(SHOTS, 'phone-03-overview-firstrun.png'), fullPage: true })
   await p.getByRole('link', { name: 'Start setup' }).tap()
   await p.getByRole('heading', { name: 'Getting started' }).waitFor()
-  await p.getByText('Companion can write config.json').first().waitFor()
+  await p.getByText('The web UI can write config.json').first().waitFor()
   await p.getByLabel('TV code').fill('9999 9999 9999')
   await p.getByRole('button', { name: 'Pair', exact: true }).tap()
   await p.getByText('YouTube did not recognise this code').first().waitFor()

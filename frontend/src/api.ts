@@ -44,7 +44,7 @@ export async function api<T = any>(path: string, opts: { method?: string; body?:
     })
   } catch (e: any) {
     if (e?.name === 'AbortError') throw e
-    throw new ApiError(0, 'Cannot reach the companion. Check your connection; nothing was changed.', 'network')
+    throw new ApiError(0, 'Cannot reach the webui. Check your connection; nothing was changed.', 'network')
   }
   if (res.status === 204) return undefined as T
   let body: any = null

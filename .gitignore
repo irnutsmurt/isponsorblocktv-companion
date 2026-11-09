@@ -3,7 +3,7 @@ __pycache__/
 *.pyc
 node_modules/
 frontend/dist/
-backend/companion/static/
+backend/webui/static/
 data/
 *.db
 *.db-wal

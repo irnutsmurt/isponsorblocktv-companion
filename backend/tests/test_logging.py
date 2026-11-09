@@ -10,9 +10,9 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from companion.logging import get_logger, get_logging_state, setup_logging
-from companion.logging.handlers import BudgetedRotatingFileHandler
-from companion.logging.redaction import register_secret
+from webui.logging import get_logger, get_logging_state, setup_logging
+from webui.logging.handlers import BudgetedRotatingFileHandler
+from webui.logging.redaction import register_secret
 
 
 def wait_flush():
@@ -31,7 +31,7 @@ def records(buf):
 
 def test_structured_record_fields():
     buf = capture(level="INFO")
-    from companion.logging import request_id_var
+    from webui.logging import request_id_var
     tok = request_id_var.set("req123")
     get_logger("ingest").info("ingest.test", "Hello", device_id=7, duration_ms=12.5, retry=2)
     request_id_var.reset(tok)
@@ -109,17 +109,17 @@ def _handler(tmp_path, **kw):
 
 
 def emit(h, msg):
-    h.emit(logging.LogRecord("companion.t", logging.INFO, __file__, 1, msg, (), None))
+    h.emit(logging.LogRecord("webui.t", logging.INFO, __file__, 1, msg, (), None))
 
 
 def wait_archives(h, n, timeout=5):
     end = time.time() + timeout
     while time.time() < end:
-        gz = [p for p in h.directory.glob("companion-*.log.gz")]
+        gz = [p for p in h.directory.glob("webui-*.log.gz")]
         if len(gz) >= n and not list(h.directory.glob("*.tmp")):
             return gz
         time.sleep(0.05)
-    return list(h.directory.glob("companion-*.log.gz"))
+    return list(h.directory.glob("webui-*.log.gz"))
 
 
 def test_size_rotation_and_gzip_readable(tmp_path):
@@ -149,7 +149,7 @@ def test_daily_rotation(tmp_path):
 
 def test_retention_and_budget(tmp_path):
     h = _handler(tmp_path, max_bytes=64 * 1024, budget_bytes=256 * 1024, retention_days=7)
-    old = h.directory / "companion-20000101-000000.log.gz"
+    old = h.directory / "webui-20000101-000000.log.gz"
     old.write_bytes(b"old")
     os.utime(old, (time.time() - 10 * 86400, time.time() - 10 * 86400))
     rnd = os.urandom
@@ -194,7 +194,7 @@ def test_unwritable_directory_degrades_without_raising(tmp_path, capsys):
         h.setFormatter(logging.Formatter("%(message)s"))
         emit(h, "hello")  # must not raise
         assert h.degraded and "cannot open" in h.degraded
-        assert "companion-logging degraded" in capsys.readouterr().err
+        assert "webui-logging degraded" in capsys.readouterr().err
     finally:
         os.chmod(d, 0o700)
 
@@ -220,4 +220,4 @@ def test_console_only_never_reaches_file_or_ring(tmp_path):
     assert "secret-abc-123" in buf.getvalue()
     assert "secret-abc-123" not in json.dumps(st.ring.snapshot())
     st.file_handler.close()
-    assert "secret-abc-123" not in (tmp_path / "logs" / "companion.log").read_text()
+    assert "secret-abc-123" not in (tmp_path / "logs" / "webui.log").read_text()

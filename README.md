@@ -1,11 +1,11 @@
-# iSponsorBlockTV Companion
+# iSponsorBlockTV Web UI
 
-A separate web app for an existing [iSponsorBlockTV](https://github.com/dmunozv04/iSponsorBlockTV) installation.
+A web front end for an existing [iSponsorBlockTV](https://github.com/dmunozv04/iSponsorBlockTV) installation.
 Add it to your Docker stack to sign in securely, pair TVs, edit settings, and see what iSponsorBlockTV is doing,
 on a phone or a desktop, without a terminal.
 
 * **Does not modify iSponsorBlockTV.** It reads the same `config.json` and iSponsorBlockTV's own log output.
-  Stopping or removing the companion never affects skipping.
+  Stopping or removing the web UI never affects skipping.
 * **Authentication from first start.** One administrator, created with a one-time setup token. Argon2id passwords,
   optional passkeys, “remember this device for 30 days”, session management, recovery code.
 * **Pairing and configuration in the browser**, with atomic writes, conflict detection, backups and a verified
@@ -31,9 +31,9 @@ on a phone or a desktop, without a terminal.
 
 ## Quick start
 
-1. Copy the `docker-gate` and `companion` services from [deploy/docker-compose.yml](deploy/docker-compose.yml) into your stack.
-2. Point both `/upstream-data` and iSponsorBlockTV's `/app/data` at the same folder, and make it writable for the companion's user.
-3. Start the stack, open `http://<nas>:8099`, and enter the setup token printed in the companion container's log
+1. Copy the `docker-gate` and `webui` services from [deploy/docker-compose.yml](deploy/docker-compose.yml) into your stack.
+2. Point both `/upstream-data` and iSponsorBlockTV's `/app/data` at the same folder, and make it writable for the web UI's user.
+3. Start the stack, open `http://<nas>:8099`, and enter the setup token printed in the web UI container's log
    (or the `SETUP_TOKEN` you set).
 4. Follow **Getting started** to pair your first TV.
 
@@ -41,10 +41,10 @@ on a phone or a desktop, without a terminal.
 
 ```bash
 python -m venv .venv && . .venv/bin/activate && pip install -r backend/requirements.txt pytest pytest-asyncio httpx cbor2
-cd frontend && npm ci && npm run build        # outputs to backend/companion/static
+cd frontend && npm ci && npm run build        # outputs to backend/webui/static
 cd ../backend && python -m pytest             # backend tests
 cd ../e2e && npm i && ./run-e2e.sh            # browser tests (needs /usr/bin/chromium)
-docker build -t isponsorblocktv-companion .
+docker build -t isponsorblocktv-webui .
 ```
 
 License: GPL-3.0-or-later (same family as iSponsorBlockTV; no upstream code is included).

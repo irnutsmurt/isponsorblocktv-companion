@@ -28,7 +28,7 @@ function DebugControls({ onChange }: { onChange: () => void }) {
   async function call(p: Promise<any>, msg: string) { try { await p; toast(msg); r.reload(true); onChange() } catch (e: any) { toast(e.message, 'bad') } }
   return (
     <section className="card">
-      <div className="card-head"><h2>Companion log level</h2>{debugOn ? <Badge kind="warn" icon="alert">Debug mode on</Badge> : <Badge>{lv?.global || '…'}</Badge>}</div>
+      <div className="card-head"><h2>Web UI log level</h2>{debugOn ? <Badge kind="warn" icon="alert">Debug mode on</Badge> : <Badge>{lv?.global || '…'}</Badge>}</div>
       {debugOn ? <Notice kind="warn" title="Verbose logging is active">Ends {exp ? `${fmtRelative(exp)} (${fmtTime(exp, { date: false })})` : 'when turned off'}; the level then returns to {lv.global_base}. Debug logs never contain passwords, cookies, tokens or screen IDs.</Notice> : null}
       <div className="row">
         {debugOn
@@ -52,8 +52,8 @@ function DebugControls({ onChange }: { onChange: () => void }) {
   )
 }
 
-function LogViewer({ kind }: { kind: 'companion' | 'upstream' }) {
-  const [level, setLevel] = useState(kind === 'companion' ? 'INFO' : '')
+function LogViewer({ kind }: { kind: 'webui' | 'upstream' }) {
+  const [level, setLevel] = useState(kind === 'webui' ? 'INFO' : '')
   const [component, setComponent] = useState('')
   const [search, setSearch] = useState('')
   const [paused, setPaused] = useState(false)
@@ -66,17 +66,17 @@ function LogViewer({ kind }: { kind: 'companion' | 'upstream' }) {
   const params = () => {
     const p = new URLSearchParams()
     if (level) p.set('level', level)
-    if (kind === 'companion' && component) p.set('component', component)
+    if (kind === 'webui' && component) p.set('component', component)
     if (search) p.set('search', search)
     return p
   }
   async function load(initial: boolean) {
     try {
       const p = params()
-      if (kind === 'companion') {
+      if (kind === 'webui') {
         p.set('limit', '300')
         if (!initial && lastSeq.current) p.set('after_seq', String(lastSeq.current))
-        const r = await api(`/api/logs/companion?${p}`)
+        const r = await api(`/api/logs/webui?${p}`)
         setMeta(r)
         if (initial) setRecords(r.records)
         else if (r.records.length) setRecords((x) => [...x, ...r.records].slice(-1000))
@@ -105,15 +105,15 @@ function LogViewer({ kind }: { kind: 'companion' | 'upstream' }) {
     <div className="stack">
       <div className="filters">
         <Field label="Minimum level" htmlFor={`${kind}-lvl`}><select id={`${kind}-lvl`} value={level} onChange={(e) => setLevel(e.target.value)}><option value="">All</option>{['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'].map((l) => <option key={l}>{l}</option>)}</select></Field>
-        {kind === 'companion' ? <Field label="Component" htmlFor="comp"><select id="comp" value={component} onChange={(e) => setComponent(e.target.value)}><option value="">All</option>{(meta?.components || []).map((c: string) => <option key={c}>{c}</option>)}</select></Field> : null}
+        {kind === 'webui' ? <Field label="Component" htmlFor="comp"><select id="comp" value={component} onChange={(e) => setComponent(e.target.value)}><option value="">All</option>{(meta?.components || []).map((c: string) => <option key={c}>{c}</option>)}</select></Field> : null}
         <Field label="Search" htmlFor={`${kind}-q`}><input id={`${kind}-q`} type="search" value={search} onChange={(e) => setSearch(e.target.value)} /></Field>
         <button className="btn" onClick={() => setPaused((p) => !p)} aria-pressed={paused}><Icon name={paused ? 'play' : 'pause'} /> {paused ? 'Resume' : 'Pause'}</button>
-        {kind === 'companion' ? <button className="btn" onClick={() => download(`/api/logs/companion/download?${params()}`, 'companion-logs.ndjson')}><Icon name="download" /> Download</button> : null}
+        {kind === 'webui' ? <button className="btn" onClick={() => download(`/api/logs/webui/download?${params()}`, 'webui-logs.ndjson')}><Icon name="download" /> Download</button> : null}
       </div>
       {error ? <ErrorNotice error={error} what="load logs" /> : null}
-      {kind === 'upstream' ? <p className="subtle">iSponsorBlockTV’s own output as collected by the companion. Screen IDs and YouTube tokens are replaced before storage. Kept separately from activity history and pruned automatically.</p> : null}
+      {kind === 'upstream' ? <p className="subtle">iSponsorBlockTV’s own output as collected by the webui. Screen IDs and YouTube tokens are replaced before storage. Kept separately from activity history and pruned automatically.</p> : null}
       <div className="log-box" ref={box} role="log" aria-live="off" aria-label={`${kind} log`} tabIndex={0}>
-        {records.length === 0 ? <p className="muted" style={{ padding: 12 }}>No log records match.</p> : records.map((r, i) => kind === 'companion' ? (
+        {records.length === 0 ? <p className="muted" style={{ padding: 12 }}>No log records match.</p> : records.map((r, i) => kind === 'webui' ? (
           <div key={r.seq ?? i} className="log-line"><span className="subtle">{fmtTime(r.ts, { date: false, seconds: true })}</span> <span className={`lvl lvl-${r.level}`}>{r.level}</span><span className="subtle">{r.component}</span> {r.msg}{r.event ? <span className="subtle"> [{r.event}]</span> : null}{r.repeat ? <Badge kind="warn">+{r.repeat} similar</Badge> : null}
             {Object.keys(r).filter((k) => !['ts', 'level', 'component', 'event', 'msg', 'seq', 'exc', 'repeat'].includes(k)).length ? <span className="subtle"> {JSON.stringify(Object.fromEntries(Object.entries(r).filter(([k]) => !['ts', 'level', 'component', 'event', 'msg', 'seq', 'exc', 'repeat'].includes(k))))}</span> : null}
             {r.exc ? <details><summary>Stack trace</summary><pre>{r.exc}</pre></details> : null}</div>
@@ -121,7 +121,7 @@ function LogViewer({ kind }: { kind: 'companion' | 'upstream' }) {
           <div key={r.id} className="log-line"><span className="subtle">{fmtTime(r.at, { date: true, seconds: true })}</span> {r.level ? <span className={`lvl lvl-${r.level}`}>{r.level}</span> : null}<span className="subtle">{r.parsed}</span> {r.message}</div>
         ))}
       </div>
-      {kind === 'companion' && meta?.file ? <p className="subtle">{meta.file.enabled === false ? 'File logging is off (stdout only; Docker keeps those logs per its logging driver).' : `Log files: ${bytes(meta.file.directory_bytes)} of ${bytes(meta.file.budget_bytes)} budget, ${meta.file.archives} archive(s), kept ${meta.file.retention_days} days.`} Showing the most recent {meta.total_in_buffer} records held in memory.</p> : null}
+      {kind === 'webui' && meta?.file ? <p className="subtle">{meta.file.enabled === false ? 'File logging is off (stdout only; Docker keeps those logs per its logging driver).' : `Log files: ${bytes(meta.file.directory_bytes)} of ${bytes(meta.file.budget_bytes)} budget, ${meta.file.archives} archive(s), kept ${meta.file.retention_days} days.`} Showing the most recent {meta.total_in_buffer} records held in memory.</p> : null}
     </div>
   )
 }
@@ -130,7 +130,7 @@ export default function DiagnosticsPage() {
   const health = useResource<any>('/api/health')
   const caps = useResource<any>('/api/capabilities')
   const audit = useResource<any>('/api/audit?limit=50')
-  const [tab, setTab] = useState<'companion' | 'upstream'>('companion')
+  const [tab, setTab] = useState<'webui' | 'upstream'>('webui')
   const [includeConfig, setIncludeConfig] = useState(false)
   const toast = useToast()
   const h = health.data
@@ -143,17 +143,17 @@ export default function DiagnosticsPage() {
       {!h ? <Loading /> : (
         <div className="stack" style={{ gap: 16 }}>
           <div className="tiles">
-            <div className="tile"><div className="label">Companion</div><div className="value" style={{ fontSize: '1.1rem' }}>{h.database.healthy ? 'Running' : 'Degraded'}</div><div className="note">v{h.version} · up {fmtRelative(h.started_at).replace(' ago', '')}</div></div>
+            <div className="tile"><div className="label">Web UI</div><div className="value" style={{ fontSize: '1.1rem' }}>{h.database.healthy ? 'Running' : 'Degraded'}</div><div className="note">v{h.version} · up {fmtRelative(h.started_at).replace(' ago', '')}</div></div>
             <div className="tile"><div className="label">Collection</div><div className="value" style={{ fontSize: '1.1rem' }}>{col.status}</div><div className="note">{col.source_kind} · {col.lines_processed} lines · {col.duplicates_skipped} duplicates skipped</div></div>
             <div className="tile"><div className="label">iSponsorBlockTV container</div><div className="value" style={{ fontSize: '1.1rem' }}>{col.container?.state || 'unknown'}</div><div className="note">{col.container ? `${col.container.image} · restarts ${col.container.restart_count}` : 'Docker API not available'}</div></div>
             <div className="tile"><div className="label">Database</div><div className="value" style={{ fontSize: '1.1rem' }}>{bytes(h.database.size_bytes)}</div><div className="note">{h.disk ? `${bytes(h.disk.free)} free on data volume` : ''}</div></div>
           </div>
           {col.status !== 'connected' ? <Notice kind="warn" title="Collection is not running" details={col}>{col.detail}</Notice> : null}
           {h.logging.degraded ? <Notice kind="warn" title="File logging is degraded">{h.logging.file.degraded}. Logs continue on stdout.</Notice> : null}
-          {col.upstream_debug ? <Notice kind="info">iSponsorBlockTV runs with <code>--debug</code>. The companion does not need it; it makes upstream logs much larger.</Notice> : null}
+          {col.upstream_debug ? <Notice kind="info">iSponsorBlockTV runs with <code>--debug</code>. The webui does not need it; it makes upstream logs much larger.</Notice> : null}
           <DebugControls onChange={() => health.reload(true)} />
           <section className="card">
-            <div className="card-head"><h2>Logs</h2><Segmented label="Log source" value={tab} onChange={setTab} options={[{ value: 'companion', label: 'Companion' }, { value: 'upstream', label: 'iSponsorBlockTV' }]} /></div>
+            <div className="card-head"><h2>Logs</h2><Segmented label="Log source" value={tab} onChange={setTab} options={[{ value: 'webui', label: 'Web UI' }, { value: 'upstream', label: 'iSponsorBlockTV' }]} /></div>
             <LogViewer kind={tab} key={tab} />
           </section>
           <section className="card">

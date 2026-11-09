@@ -3,7 +3,7 @@
 Three kinds of evidence, kept separate:
 
 * **Live** — real iSponsorBlockTV 2.11.0 container (built unmodified from upstream source), real Docker Engine 29.8,
-  the companion image, its Docker gate, and real YouTube/SponsorBlock endpoints.
+  the web UI image, its Docker gate, and real YouTube/SponsorBlock endpoints.
 * **Simulated** — automated tests with sanitized fixtures, a fake YouTube lounge pairing server, a software WebAuthn
   authenticator, and Chromium viewport/touch emulation.
 * **Unverified** — not exercised at all; listed at the end.
@@ -25,7 +25,7 @@ lines during concurrent rotation.
 ## Browser tests — 86/86 checks passed (`e2e/run-e2e.sh`, Chromium 130 headless, emulation)
 
 The first-TV workflow ran on an **emulated** Pixel-class phone (390×844, touch, `isMobile`) with taps and a numeric
-keypad entry, against a real companion process in file mode and a **fake** YouTube pairing server:
+keypad entry, against a real web UI process in file mode and a **fake** YouTube pairing server:
 wrong setup token → explained; account creation; recovery code; first-run overview; deployment checks; invalid TV
 code explained; code auto-formatting; “paired” shown separately from “saved”; save without Docker → “restart
 needed”, not success; simulated upstream restart → “Saved, applied and verified”; config.json contains the TV;
@@ -44,18 +44,18 @@ a wrapping button label) were fixed.
 | Scenario | Result |
 |---|---|
 | Collect from `docker logs` through the gate; device marked loaded | ✅ |
-| Lounge token and screen ID absent from the companion database and UI | ✅ (`[REDACTED]`, hashed device id) |
-| Remembered session survives `docker restart` of the companion | ✅ |
-| Checkpoint resume after companion restart | ✅ after fixing the `since` format (found live) |
+| Lounge token and screen ID absent from the web UI database and UI | ✅ (`[REDACTED]`, hashed device id) |
+| Remembered session survives `docker restart` of the web UI | ✅ |
+| Checkpoint resume after webui restart | ✅ after fixing the `since` format (found live) |
 | Save and apply: write → gate restart → new run → device loaded → “applied” | ✅ |
 | Apply failure path (gate denied / stream lost) shows “Saved, but applying failed” with the reason | ✅ |
-| Fresh database over 3 runs of history, then companion restart: 3 “loaded” events, no duplicates | ✅ after fixing run-independent dedup (found live) |
+| Fresh database over 3 runs of history, then web UI restart: 3 “loaded” events, no duplicates | ✅ after fixing run-independent dedup (found live) |
 | iSponsorBlockTV stopped: stats stay visible and marked stale, gap opened, device “Unknown” (not offline); restarted: gap closed | ✅ |
 | External edit that empties `devices`, then upstream restart: validation error shown, upstream's fatal reason recognised | ✅ |
 | Gate: target inspect/logs allowed; other containers, list, create, exec, stop, images, missing token → 403; env filtered | ✅ |
 | Gate hardened (`read_only`, `cap_drop: ALL`, `no-new-privileges`) still restarts and verifies; own healthcheck healthy | ✅ |
 | File-mode entrypoint from installation.md: `docker compose down` in 1 s, `Exited` captured, output still in `docker logs` | ✅ |
-| Companion image healthcheck | ✅ healthy |
+| Web UI image healthcheck | ✅ healthy |
 
 ## Unverified — no claim is made
 

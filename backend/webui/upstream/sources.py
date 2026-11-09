@@ -81,7 +81,7 @@ class DockerLogSource:
             raise SourceUnavailable(str(exc), exc.code, retry_in=30.0 if exc.code == "unreachable" else 15.0) from exc
         if info is None:
             raise SourceUnavailable(
-                f"No container named '{self.container_name}' is visible to the companion. Check UPSTREAM_CONTAINER and that both containers share the same Docker host.",
+                f"No container named '{self.container_name}' is visible to the webui. Check UPSTREAM_CONTAINER and that both containers share the same Docker host.",
                 "container_missing", retry_in=30.0)
         if info.log_driver and info.log_driver in UNSUPPORTED_LOG_DRIVERS:
             raise SourceUnavailable(
@@ -117,7 +117,7 @@ class FileLogSource:
         if not self.path.exists():
             raise SourceUnavailable(f"Log file {self.path} does not exist yet. Make sure the iSponsorBlockTV container writes its output there.", "file_missing", retry_in=30.0)
         if not os.access(self.path, os.R_OK):
-            raise SourceUnavailable(f"Log file {self.path} is not readable by the companion (uid {os.getuid()}).", "file_permission", retry_in=60.0)
+            raise SourceUnavailable(f"Log file {self.path} is not readable by the webui (uid {os.getuid()}).", "file_permission", retry_in=60.0)
         inode, size = self._open_state()
         offset = 0
         if cursor and ":" in cursor:

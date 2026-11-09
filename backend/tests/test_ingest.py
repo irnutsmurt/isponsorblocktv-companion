@@ -18,7 +18,7 @@ UPSTREAM_SRC = Path(os.getenv("UPSTREAM_SRC_DIR", Path(__file__).resolve().paren
 
 
 def test_parser_classifies_and_redacts():
-    from companion.upstream.parser import UpstreamLogParser
+    from webui.upstream.parser import UpstreamLogParser
     p = UpstreamLogParser("UTC")
     lines = (FIXTURES / "upstream_2_11_sample.log").read_text().splitlines()
     parsed = [p.parse(l) for l in lines]
@@ -36,7 +36,7 @@ def test_parser_classifies_and_redacts():
 
 
 def test_parser_applies_upstream_timezone():
-    from companion.upstream.parser import UpstreamLogParser
+    from webui.upstream.parser import UpstreamLogParser
     p = UpstreamLogParser("Europe/Madrid")
     x = p.parse("2026-07-01 12:00:00,000 - iSponsorBlockTV-abcdefgh12345678 - INFO - Ad has started, muting")
     assert x.ts == datetime(2026, 7, 1, 10, 0, tzinfo=timezone.utc)
@@ -56,7 +56,7 @@ def _load_upstream_process_segments():
 
 @pytest.mark.skipif(not UPSTREAM_SRC.exists(), reason="upstream source not present")
 def test_merge_matches_upstream_process_segments():
-    from companion.upstream.sponsorblock import merge_segments
+    from webui.upstream.sponsorblock import merge_segments
     upstream = _load_upstream_process_segments()
     rng = random.Random(7)
     for _ in range(300):
@@ -72,7 +72,7 @@ def test_merge_matches_upstream_process_segments():
 
 
 def test_overlapping_segments_not_double_counted():
-    from companion.upstream.sponsorblock import match_seek, merge_segments
+    from webui.upstream.sponsorblock import match_seek, merge_segments
     segs = [{"segment": [10, 40], "UUID": "a", "category": "sponsor"}, {"segment": [30, 60], "UUID": "b", "category": "selfpromo"}]
     merged = merge_segments(segs, 1)
     assert len(merged) == 1 and merged[0]["start"] == 10 and merged[0]["end"] == 60
@@ -90,7 +90,7 @@ class Harness:
         self.c._run_id = "run1"
 
     async def feed(self, lines, base_ts="2026-11-08T20:00:00"):
-        from companion.upstream.sources import RawLine
+        from webui.upstream.sources import RawLine
         last = "2026-11-08T19:59:59.000000000Z"
         for i, line in enumerate(lines):
             # Docker stamps every line (also print()/traceback lines); emulate with the last seen time + i ns
@@ -110,8 +110,8 @@ def _config(env, devices):
 def test_ingest_fixture_end_to_end(env, monkeypatch):
     _config(env, [{"screen_id": SCREEN_A, "name": "Living room", "offset": 0}])
     from fastapi.testclient import TestClient
-    from companion.main import create_app
-    from companion.settings import get_settings
+    from webui.main import create_app
+    from webui.settings import get_settings
     app = create_app(get_settings())
     with TestClient(app) as c:
         h = Harness(app)
@@ -143,8 +143,8 @@ def test_ingest_fixture_end_to_end(env, monkeypatch):
 def test_checkpoint_survives_restart(env):
     _config(env, [{"screen_id": SCREEN_A, "name": "TV", "offset": 0}])
     from fastapi.testclient import TestClient
-    from companion.main import create_app
-    from companion.settings import get_settings
+    from webui.main import create_app
+    from webui.settings import get_settings
     lines = (FIXTURES / "upstream_2_11_sample.log").read_text().splitlines()
     app = create_app(get_settings())
     with TestClient(app) as c:
@@ -161,8 +161,8 @@ def test_checkpoint_survives_restart(env):
 def test_attribution_with_sponsorblock(env):
     _config(env, [{"screen_id": SCREEN_A, "name": "TV", "offset": 0}])
     from fastapi.testclient import TestClient
-    from companion.main import create_app
-    from companion.settings import get_settings
+    from webui.main import create_app
+    from webui.settings import get_settings
     app = create_app(get_settings())
     with TestClient(app) as c:
         lines = (FIXTURES / "upstream_2_11_sample.log").read_text().splitlines()
@@ -171,7 +171,7 @@ def test_attribution_with_sponsorblock(env):
         async def fake_fetch(self, vid, cats):
             return [{"segment": [80.0, 95.5], "UUID": "u1", "category": "sponsor", "locked": 1, "votes": 3, "videoDuration": 212.0},
                     {"segment": [250.0, 290.0], "UUID": "u2", "category": "sponsor", "locked": 1, "votes": 3, "videoDuration": 212.0}]
-        from companion.upstream import sponsorblock
+        from webui.upstream import sponsorblock
         orig = sponsorblock.SponsorBlockClient.fetch_segments
         sponsorblock.SponsorBlockClient.fetch_segments = fake_fetch
         try:
@@ -188,9 +188,9 @@ def test_attribution_with_sponsorblock(env):
 def test_overview_metrics_and_timezone(env):
     _config(env, [{"screen_id": SCREEN_A, "name": "TV", "offset": 0}])
     from fastapi.testclient import TestClient
-    from companion.main import create_app
-    from companion.settings import get_settings
-    from companion.stats.queries import range_bounds, resolve_tz
+    from webui.main import create_app
+    from webui.settings import get_settings
+    from webui.stats.queries import range_bounds, resolve_tz
     from conftest import PASSWORD
     app = create_app(get_settings())
     with TestClient(app) as c:
@@ -217,11 +217,11 @@ def test_overview_metrics_and_timezone(env):
 
 def test_retention_rollup_preserves_totals(env, monkeypatch):
     monkeypatch.setenv("EVENT_RETENTION_DAYS", "7")
-    from companion.settings import reset_settings_for_tests, get_settings
+    from webui.settings import reset_settings_for_tests, get_settings
     reset_settings_for_tests()
     _config(env, [{"screen_id": SCREEN_A, "name": "TV", "offset": 0}])
     from fastapi.testclient import TestClient
-    from companion.main import create_app
+    from webui.main import create_app
     app = create_app(get_settings())
     with TestClient(app) as c:
         db = app.state.db
@@ -236,7 +236,7 @@ def test_retention_rollup_preserves_totals(env, monkeypatch):
 
 
 def test_file_source_rotation_and_truncation(tmp_path):
-    from companion.upstream.sources import FileLogSource, SourceUnavailable
+    from webui.upstream.sources import FileLogSource, SourceUnavailable
     f = tmp_path / "up.log"
     f.write_text("line1\nline2\n")
 
@@ -271,7 +271,7 @@ def test_file_source_rotation_and_truncation(tmp_path):
 
 def test_docker_demux():
     import struct
-    from companion.upstream.docker_client import _demux
+    from webui.upstream.docker_client import _demux
 
     class R:
         def __init__(self, data): self.data = data; self.pos = 0
@@ -290,7 +290,7 @@ def test_docker_demux():
 
 
 def test_docker_since_format():
-    from companion.upstream.sources import docker_since
+    from webui.upstream.sources import docker_since
     assert docker_since("2026-11-09T18:01:11.265812693Z") == "1794247271.265812693"
     assert docker_since("2026-11-09T18:01:11Z") == "1794247271.000000000"
     assert docker_since(None) is None
@@ -301,15 +301,15 @@ def test_replay_after_upstream_restart_not_double_counted(env):
     """Docker returns the previous run's lines again after a container restart; they must dedupe."""
     _config(env, [{"screen_id": SCREEN_A, "name": "TV", "offset": 0}])
     from fastapi.testclient import TestClient
-    from companion.main import create_app
-    from companion.settings import get_settings
+    from webui.main import create_app
+    from webui.settings import get_settings
     lines = (FIXTURES / "upstream_2_11_sample.log").read_text().splitlines()
     app = create_app(get_settings())
     with TestClient(app) as c:
         h = Harness(app)
         h.c._dedup_scope = "docker:abc123"
         c.portal.call(h.feed, lines)
-        # simulate: upstream restarted → new run id, then the companion replays from an older cursor
+        # simulate: upstream restarted → new run id, then the webui replays from an older cursor
         h.c._run_id = "run2"
         h.c._run_started = datetime(2026, 11, 8, 21, 0, tzinfo=timezone.utc)
         c.portal.call(h.feed, lines)

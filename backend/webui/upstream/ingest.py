@@ -157,7 +157,7 @@ class Collector:
                 delay = min(exc.retry_in, 300.0) * (0.8 + random.random() * 0.4)
                 await asyncio.sleep(delay)
             except DatabaseUnavailable as exc:
-                await self._set_status("unavailable", f"Companion database unavailable: {exc}", "database")
+                await self._set_status("unavailable", f"Web UI database unavailable: {exc}", "database")
                 await asyncio.sleep(30)
             except asyncio.CancelledError:
                 raise

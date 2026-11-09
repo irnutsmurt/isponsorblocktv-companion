@@ -113,7 +113,7 @@ class Settings:
     raw_log_retention_days: int = field(default_factory=lambda: _int("UPSTREAM_LOG_RETENTION_DAYS", 14, 1))
     raw_log_max_rows: int = field(default_factory=lambda: _int("UPSTREAM_LOG_MAX_ROWS", 200_000, 1000))
 
-    # Companion logging
+    # Web UI logging
     log_level: str = field(default_factory=lambda: (os.getenv("LOG_LEVEL", "INFO") or "INFO").upper())
     log_format: str = field(default_factory=lambda: (os.getenv("LOG_FORMAT", "json") or "json").lower())  # json|text
     log_file_enabled: bool = field(default_factory=lambda: _bool("LOG_FILE_ENABLED", False))
@@ -140,7 +140,7 @@ class Settings:
 
     @property
     def db_path(self) -> Path:
-        return self.data_dir / "companion.db"
+        return self.data_dir / "webui.db"
 
     @property
     def log_dir(self) -> Path:

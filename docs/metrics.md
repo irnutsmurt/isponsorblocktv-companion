@@ -30,7 +30,7 @@ and where day boundaries fall for “Today”, “7 days”, “30 days”, cust
 ## Duplicates and repeats
 
 Every upstream line is identified by *source container + Docker's nanosecond timestamp + content hash*. Re-reading
-the same lines (restart of the companion, Docker returning older lines after an upstream restart) adds nothing.
+the same lines (restart of the web UI, Docker returning older lines after an upstream restart) adds nothing.
 Watching the same video again produces new lines with new timestamps and is counted again, as it should be.
 The read position (checkpoint) is committed together with the records; at most the last second of lines is
 re-read after a crash, and those dedupe.

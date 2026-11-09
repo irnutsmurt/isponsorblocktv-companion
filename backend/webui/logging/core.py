@@ -27,7 +27,7 @@ from .redaction import redact_mapping, redact_text
 request_id_var: contextvars.ContextVar[str | None] = contextvars.ContextVar("request_id", default=None)
 
 LEVELS = {"DEBUG": 10, "INFO": 20, "WARNING": 30, "ERROR": 40, "CRITICAL": 50}
-ROOT_NAME = "companion"
+ROOT_NAME = "webui"
 # A record carrying this flag is written only to the stdout/stderr console sink: used for the
 # one-time bootstrap token announcement, which must not land in files or the ring buffer.
 CONSOLE_ONLY_FLAG = "_console_only"
@@ -264,7 +264,7 @@ class LevelManager:
         return expired
 
 
-class CompanionLogger:
+class WebUILogger:
     """Structured facade over a stdlib logger: ``log.info("event.name", "message", key=value)``."""
 
     def __init__(self, name: str) -> None:
@@ -336,8 +336,8 @@ def get_logging_state() -> LoggingState:
     return _state
 
 
-def get_logger(name: str) -> CompanionLogger:
-    return CompanionLogger(name)
+def get_logger(name: str) -> WebUILogger:
+    return WebUILogger(name)
 
 
 def setup_logging(
@@ -354,7 +354,7 @@ def setup_logging(
     debug_mode_default_minutes: int = 30,
     stream=None,
 ) -> LoggingState:
-    """Configure the ``companion`` logger tree. Safe to call again (tests)."""
+    """Configure the ``webui`` logger tree. Safe to call again (tests)."""
     root = logging.getLogger(ROOT_NAME)
     root.propagate = False
     for h in list(root.handlers):

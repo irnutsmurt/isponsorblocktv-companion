@@ -1,7 +1,7 @@
 .venv
 **/node_modules
 **/__pycache__
-backend/companion/static
+backend/webui/static
 backend/tests
 .git
 data

@@ -23,17 +23,17 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setenv("ARGON2_TIME_COST", "1")
     monkeypatch.setenv("AVAILABILITY_POLL_MINUTES", "0")
     monkeypatch.setenv("ENRICHMENT_ENABLED", "false")
-    from companion.settings import reset_settings_for_tests
+    from webui.settings import reset_settings_for_tests
     reset_settings_for_tests()
-    from companion.logging import setup_logging
+    from webui.logging import setup_logging
     setup_logging(level="DEBUG", fmt="json", stream=open(os.devnull, "w"))
     return {"data": data, "upstream": upstream, "tmp": tmp_path}
 
 
 @pytest.fixture
 def app(env):
-    from companion.main import create_app
-    from companion.settings import get_settings
+    from webui.main import create_app
+    from webui.settings import get_settings
     return create_app(get_settings())
 
 

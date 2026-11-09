@@ -139,12 +139,12 @@ function AccessSettings() {
     <section className="card">
       <h2>Access and display</h2>
       <div className="stack">
-        <Field label="Public address" htmlFor="origin" help={<>The exact URL you use to open this app, e.g. <code>https://companion.example.home</code>. Required for passkeys and used to check request origins. Currently opened at <code>{s.current_origin}</code>.</>}>
+        <Field label="Public address" htmlFor="origin" help={<>The exact URL you use to open this app, e.g. <code>https://webui.example.home</code>. Required for passkeys and used to check request origins. Currently opened at <code>{s.current_origin}</code>.</>}>
           <div className="row"><input id="origin" type="url" style={{ flex: '1 1 220px' }} value={origin ?? s.public_origin ?? ''} placeholder={s.current_origin} onChange={(e) => setOrigin(e.target.value)} />
             <button className="btn" onClick={() => save({ public_origin: origin ?? s.current_origin }, 'Public address saved')}>Save</button>
             {!s.public_origin ? <button className="btn btn-ghost" onClick={() => save({ public_origin: s.current_origin }, 'Public address saved')}>Use current</button> : null}</div>
         </Field>
-        {s.insecure_transport ? <Notice kind="warn" title="HTTPS is not set up">Passkeys need HTTPS. Use the built-in self-signed option (TLS_SELF_SIGNED=true), mount your own certificate (TLS_CERT_FILE/TLS_KEY_FILE), or put the companion behind your NAS’s reverse proxy. See docs/https.md.</Notice> : null}
+        {s.insecure_transport ? <Notice kind="warn" title="HTTPS is not set up">Passkeys need HTTPS. Use the built-in self-signed option (TLS_SELF_SIGNED=true), mount your own certificate (TLS_CERT_FILE/TLS_KEY_FILE), or put the webui behind your NAS’s reverse proxy. See docs/https.md.</Notice> : null}
         <Field label="Timezone for dates and day boundaries" htmlFor="tz">
           <div className="row"><select id="tz" style={{ flex: '1 1 220px' }} value={tz ?? s.timezone} onChange={(e) => setTz(e.target.value)}>{zones.map((z) => <option key={z}>{z}</option>)}</select>
             <button className="btn" onClick={() => save({ timezone: tz ?? s.timezone }, 'Timezone saved')}>Save</button>

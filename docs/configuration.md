@@ -4,7 +4,7 @@ All optional. Defaults are safe for a home NAS.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `DATA_DIR` | `/data` | Companion data (database, backups, logs, TLS) |
+| `DATA_DIR` | `/data` | Web UI data (database, backups, logs, TLS) |
 | `UPSTREAM_DATA_DIR` | `/upstream-data` | iSponsorBlockTV's data folder (`config.json`) |
 | `UPSTREAM_CONFIG_FILE` | `$UPSTREAM_DATA_DIR/config.json` | Override the config path |
 | `PORT` / `HOST` | `8099` / `0.0.0.0` | Listener |
@@ -33,12 +33,12 @@ All optional. Defaults are safe for a home NAS.
 | `CONFIG_BACKUPS_KEEP` | `20` | Number of `config.json` backups kept |
 | `EVENT_RETENTION_DAYS` | `365` | Detailed history before roll-up |
 | `UPSTREAM_LOG_RETENTION_DAYS` / `UPSTREAM_LOG_MAX_ROWS` | `14` / `200000` | Stored upstream log lines |
-| `LOG_LEVEL`, `LOG_LEVEL_<COMPONENT>` | `INFO` | Companion log levels |
+| `LOG_LEVEL`, `LOG_LEVEL_<COMPONENT>` | `INFO` | Web UI log levels |
 | `LOG_FORMAT` | `json` | `json` or `text` on stdout |
 | `LOG_FILE_ENABLED`, `LOG_FILE_MAX_BYTES`, `LOG_FILE_ROTATE_DAILY`, `LOG_RETENTION_DAYS`, `LOG_DIR_BUDGET_BYTES` | off, 10MiB, true, 7, 100MiB | See logging.md |
 | `LOG_RING_SIZE` | `5000` | Records kept in memory for the viewer |
 | `DEBUG_MODE_MINUTES` | `30` | Length of temporary debug mode |
 | `YOUTUBE_LOUNGE_API_BASE` | YouTube | **Tests only**: points pairing at a fake server |
 
-Gate (`python -m companion.dockerproxy`): `GATE_TARGET_CONTAINER`, `GATE_ALLOW_RESTART` (`true`), `GATE_TOKEN`,
+Gate (`python -m webui.dockerproxy`): `GATE_TARGET_CONTAINER`, `GATE_ALLOW_RESTART` (`true`), `GATE_TOKEN`,
 `GATE_PORT` (`2375`), `GATE_DOCKER_SOCKET` (`/var/run/docker.sock`).

@@ -55,7 +55,7 @@ export function CollectionBanner({ collection }: { collection: any }) {
   const title = st === 'disabled' ? 'Statistics collection is turned off' : st === 'starting' ? 'Connecting to iSponsorBlockTV…' : 'Statistics may be out of date'
   return (
     <Notice kind={st === 'starting' ? 'info' : 'warn'} title={title} details={collection.detail ? { status: st, code: collection.error_code, detail: collection.detail, since: collection.since } : undefined}>
-      <p>{collection.detail || 'The companion cannot read iSponsorBlockTV’s activity right now.'} {lastUpd ? <>Showing data collected up to {fmtTime(collection.last_record_at || lastUpd)}.</> : null} Skipping on your TVs is not affected by this.</p>
+      <p>{collection.detail || 'The webui cannot read iSponsorBlockTV’s activity right now.'} {lastUpd ? <>Showing data collected up to {fmtTime(collection.last_record_at || lastUpd)}.</> : null} Skipping on your TVs is not affected by this.</p>
     </Notice>
   )
 }

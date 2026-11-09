@@ -55,7 +55,7 @@ def origin_allows_passkeys(origin: str) -> str | None:
 
 
 class PasskeyService:
-    def __init__(self, db: Database, rp_name: str = "iSponsorBlockTV Companion") -> None:
+    def __init__(self, db: Database, rp_name: str = "iSponsorBlockTV Web UI") -> None:
         self.db = db
         self.rp_name = rp_name
 

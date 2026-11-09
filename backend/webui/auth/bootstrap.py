@@ -67,7 +67,7 @@ class BootstrapService:
         # Console-only: never reaches files, the ring buffer, or exports.
         log.console_only(
             "\n" + "=" * 72 + "\n"
-            "  iSponsorBlockTV Companion — first-time setup\n"
+            "  iSponsorBlockTV Web UI — first-time setup\n"
             f"  Open the web UI and enter this one-time setup token (valid {self.ttl // 60} min):\n\n"
             f"      {token}\n\n"
             "  A new token is printed here when this one expires. Set SETUP_TOKEN in the\n"

@@ -88,10 +88,10 @@ class ConfigStore:
     def writability(self) -> tuple[bool, str | None]:
         d = self.path.parent
         if not d.exists():
-            return False, f"Directory {d} does not exist inside the companion container. Check the UPSTREAM_DATA_DIR volume mount."
+            return False, f"Directory {d} does not exist inside the webui container. Check the UPSTREAM_DATA_DIR volume mount."
         if not os.access(d, os.W_OK | os.X_OK):
-            return False, (f"The companion cannot write to {d} (running as uid {os.getuid()}, gid {os.getgid()}). "
-                           "Grant write permission to that user on the iSponsorBlockTV data folder, or run the companion with PUID/PGID matching the folder owner.")
+            return False, (f"The webui cannot write to {d} (running as uid {os.getuid()}, gid {os.getgid()}). "
+                           "Grant write permission to that user on the iSponsorBlockTV data folder, or run the webui with PUID/PGID matching the folder owner.")
         if self.path.exists() and not os.access(self.path, os.R_OK):
             return False, f"{self.path} exists but is not readable by uid {os.getuid()}."
         return True, None

@@ -14,10 +14,10 @@ export default function GettingStarted() {
   const h = health.data
   const col = h.collection
   const checks = [
-    { ok: c.directory?.exists, label: 'iSponsorBlockTV data folder is mounted', fix: `Mount the iSponsorBlockTV data folder into the companion at ${c.directory?.path}.` },
-    { ok: c.writable, label: 'Companion can write config.json', fix: c.write_problem },
+    { ok: c.directory?.exists, label: 'iSponsorBlockTV data folder is mounted', fix: `Mount the iSponsorBlockTV data folder into the webui at ${c.directory?.path}.` },
+    { ok: c.writable, label: 'The web UI can write config.json', fix: c.write_problem },
     { ok: !c.parse_error, label: c.exists ? 'Existing configuration is readable' : 'No configuration yet (one will be created)', fix: c.parse_error },
-    { ok: col.status === 'connected', warn: true, label: 'Companion can read iSponsorBlockTV’s activity', fix: col.detail },
+    { ok: col.status === 'connected', warn: true, label: 'The web UI can read iSponsorBlockTV’s activity', fix: col.detail },
     { ok: c.apply_capability?.mode === 'restart', warn: true, label: 'Settings can be applied from this page', fix: c.apply_capability?.reason },
   ]
   const blocking = checks.some((x) => !x.ok && !x.warn)

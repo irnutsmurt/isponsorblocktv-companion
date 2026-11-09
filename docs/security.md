@@ -1,6 +1,6 @@
 # Security model
 
-Assumption: the companion may be reachable from the internet by mistake, even before setup is finished.
+Assumption: the web UI may be reachable from the internet by mistake, even before setup is finished.
 
 | Area | Behaviour |
 |---|---|
@@ -15,6 +15,6 @@ Assumption: the companion may be reachable from the internet by mistake, even be
 | Fail closed | If the database cannot be opened or becomes unavailable, every authenticated request returns 503 and sign-in is impossible. |
 | Forwarded headers | Only honoured from `TRUSTED_PROXIES`. |
 | Headers & limits | CSP (`default-src 'self'`, no inline script), `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy: same-origin`, COOP/CORP same-origin, HSTS on HTTPS, `Cache-Control: no-store` for the API. Request bodies over 256 KiB are rejected. Untrusted text (titles, log lines, names) is rendered as text by React, never as HTML. |
-| Docker | The companion never touches the Docker socket. The `docker-gate` sidecar allows only `GET /_ping`, `GET /version`, `GET /containers/<target>/json` (environment filtered to `iSPBTV_*`, mounts and network details stripped), `GET /containers/<target>/logs` and, if enabled, `POST /containers/<target>/restart`, where `<target>` must be the configured container. Everything else returns 403 (tested: other containers, list, create, exec, stop, images). An optional shared `GATE_TOKEN` is required on every request. Mounting the socket `:ro` would not make the API read-only, so the gate is what limits it. Generic socket proxies were rejected because their restart permission requires allowing all POSTs (container create/exec). |
+| Docker | The web UI never touches the Docker socket. The `docker-gate` sidecar allows only `GET /_ping`, `GET /version`, `GET /containers/<target>/json` (environment filtered to `iSPBTV_*`, mounts and network details stripped), `GET /containers/<target>/logs` and, if enabled, `POST /containers/<target>/restart`, where `<target>` must be the configured container. Everything else returns 403 (tested: other containers, list, create, exec, stop, images). An optional shared `GATE_TOKEN` is required on every request. Mounting the socket `:ro` would not make the API read-only, so the gate is what limits it. Generic socket proxies were rejected because their restart permission requires allowing all POSTs (container create/exec). |
 | Secrets in iSponsorBlockTV's config | Screen IDs and the YouTube API key never leave the server: the UI receives a hash-derived device id and the last four characters; the API key field shows `[REDACTED]`. Pairing results are held server-side behind a 15-minute single-use ticket. |
 | Data files | `/data` 0700, database and logs 0600, config backups 0600. |
